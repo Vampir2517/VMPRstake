@@ -11,62 +11,69 @@
     <div class="app">
         <header class="header">
             <div class="user-info">
-                <img src="https://i.pravatar.cc/40" alt="Avatar" class="avatar">
+                <img src="https://i.pravatar.cc/40" alt="Аватар пользователя" class="avatar">
                 <span id="username">Vampir2615</span>
             </div>
             <div class="balance">
-    <span id="balance-amount">0.00</span> TON
-    <div id="ton-connect-btn-container">
-        <button id="ton-connect-btn" class="ton-connect-btn">➕</button>
-    </div>
-</div>
+                <span id="balance-amount">0.00</span> TON
+                <!-- Контейнер для кнопки TON Connect SDK. SDK сам вставит сюда кнопку. -->
+                <div id="ton-connect-btn-container"></div>
+            </div>
         </header>
 
         <main class="main-content">
+            <!-- Главная вкладка с выбором игр -->
             <div id="main-tab" class="tab active">
                 <button class="game-btn" data-tab="game-rps">🎮 Камень, Ножницы, Бумага</button>
                 <button class="game-btn" data-tab="game-dice">🎲 Кости</button>
                 <button class="game-btn" data-tab="history">📜 История</button>
             </div>
 
+            <!-- Вкладка игры "Камень, Ножницы, Бумага" -->
             <div id="game-rps-tab" class="tab">
                 <button class="back-btn">← Назад</button>
                 <h2>Камень, Ножницы, Бумага</h2>
-                <p>Ваша ставка: 1 TON</p>
+                <p>Ваша ставка: <span id="rps-bet-amount">1</span> TON</p>
                 <div class="choices">
-                    <button class="choice-btn">🪨</button>
-                    <button class="choice-btn">✂️</button>
-                    <button class="choice-btn">📄</button>
+                    <button class="choice-btn" data-choice="rock">🪨</button>
+                    <button class="choice-btn" data-choice="scissors">✂️</button>
+                    <button class="choice-btn" data-choice="paper">📄</button>
                 </div>
-                <div class="result-text"></div>
+                <div id="rps-result-text" class="result-text"></div>
             </div>
 
+            <!-- Вкладка игры "Кости" -->
             <div id="game-dice-tab" class="tab">
                 <button class="back-btn">← Назад</button>
                 <h2>Кости</h2>
-                <p>Ваша ставка: 1 TON</p>
+                <p>Ваша ставка: <span id="dice-bet-amount">1</span> TON</p>
                 <div class="dice-container">
                     <div id="player-dice" class="dice">?</div>
                     <div id="bot-dice" class="dice">?</div>
                 </div>
                 <button id="roll-dice-btn" class="game-btn">Бросить кости</button>
-                 <div class="result-text"></div>
+                <div id="dice-result-text" class="result-text"></div>
             </div>
 
+            <!-- Вкладка "История игр" -->
             <div id="history-tab" class="tab">
                 <button class="back-btn">← Назад</button>
                 <h2>История игр</h2>
-                <ul class="history-list">
-                    <li>КНБ | Ставка: 0.5 TON | <span class="win">Выигрыш</span></li>
-                    <li>Кости | Ставка: 1 TON | <span class="loss">Проигрыш</span></li>
-                    <li>Пополнение | +5 TON</li>
-                    </ul>
+                <ul id="history-list" class="history-list">
+                    <!-- Элементы истории будут добавлены здесь JavaScript'ом -->
+                    <li>КНБ | Ставка: 0.5 TON | <span class="win">Выигрыш</span> (пример)</li>
+                    <li>Кости | Ставка: 1 TON | <span class="loss">Проигрыш</span> (пример)</li>
+                    <li>Пополнение | +5 TON (пример)</li>
+                </ul>
             </div>
         </main>
     </div>
-    <script src="https://unpkg.com/@tonconnect/sdk@latest/dist/tonconnect-sdk.min.js"></script>
 
+    <!-- Подключение TON Connect SDK (ОБЯЗАТЕЛЬНО ПЕРЕД app.js) -->
+    <script src="https://unpkg.com/@tonconnect/sdk@latest/dist/tonconnect-sdk.min.js"></script>
+    <!-- Подключение Telegram Web App SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <!-- Подключение вашего основного скрипта приложения -->
     <script src="app.js"></script>
 </body>
 </html>
