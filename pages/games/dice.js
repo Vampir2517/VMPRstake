@@ -1,6 +1,5 @@
 "use strict";
 
-// Функция инициализации для этой страницы
 window.VMPR.currentPageScript = {
     init: function() {
         console.log('Dice game initialized.');
@@ -10,10 +9,9 @@ window.VMPR.currentPageScript = {
         const diceResultText = document.getElementById('dice-result-text');
         const diceBetAmountElement = document.getElementById('dice-bet-amount');
 
-        // Убедитесь, что global VMPR объекты доступны
+        // Глобальные объекты из VMPR
         const tg = window.VMPR.tg;
         const tonConnectUI = window.VMPR.tonConnectUI;
-        const userBalance = window.VMPR.userBalance; // Получаем текущий баланс
         const stakeAmount = window.VMPR.stakeAmount;
         const updateBalanceUI = window.VMPR.updateBalanceUI;
         const addHistoryEntry = window.VMPR.addHistoryEntry;
@@ -21,12 +19,11 @@ window.VMPR.currentPageScript = {
         diceBetAmountElement.textContent = stakeAmount.toFixed(2);
 
         rollDiceBtn.addEventListener('click', () => {
-            // Перепроверяем баланс и подключение перед каждой игрой
             if (!tonConnectUI.connected) {
                 tg.showAlert('Пожалуйста, подключите кошелек TON для игры!');
                 return;
             }
-            if (window.VMPR.userBalance < stakeAmount) { // Используем актуальный баланс из VMPR
+            if (window.VMPR.userBalance < stakeAmount) {
                 tg.showAlert('Недостаточно TON на балансе для этой ставки!');
                 return;
             }
@@ -36,10 +33,9 @@ window.VMPR.currentPageScript = {
             playerDiceEl.textContent = '?';
             botDiceEl.textContent = '?';
 
-            // Демонстрация клиентской логики (НЕБЕЗОПАСНО ДЛЯ РЕАЛЬНЫХ СТАВОК)
             let playerRoll, botRoll;
             let rollCount = 0;
-            const maxRolls = 15; // Количество "перебросов" для анимации
+            const maxRolls = 15;
 
             const interval = setInterval(() => {
                 playerRoll = Math.floor(Math.random() * 6) + 1;
@@ -49,7 +45,6 @@ window.VMPR.currentPageScript = {
                 rollCount++;
                 if (rollCount >= maxRolls) {
                     clearInterval(interval);
-                    // Финальный бросок после анимации
                     playerRoll = Math.floor(Math.random() * 6) + 1;
                     botRoll = Math.floor(Math.random() * 6) + 1;
                     playerDiceEl.textContent = playerRoll;
@@ -60,25 +55,24 @@ window.VMPR.currentPageScript = {
                     if (playerRoll > botRoll) {
                         result = "Ты выиграл!";
                         outcomeType = 'win';
-                        window.VMPR.userBalance += stakeAmount; // Только для демонстрации
+                        window.VMPR.userBalance += stakeAmount;
                     } else if (botRoll > playerRoll) {
                         result = "Ты проиграл";
                         outcomeType = 'loss';
-                        window.VMPR.userBalance -= stakeAmount; // Только для демонстрации
+                        window.VMPR.userBalance -= stakeAmount;
                     } else {
                         result = "Ничья!";
                         outcomeType = 'draw';
                     }
                     diceResultText.textContent = result;
                     diceResultText.style.color = `var(--${outcomeType}-color)`;
-                    updateBalanceUI(); // Обновляем баланс в UI
+                    updateBalanceUI();
                     addHistoryEntry(`Кости | Ставка: ${stakeAmount.toFixed(2)} TON | ${result}`, outcomeType);
                 }
-            }, 100); // Скорость анимации
+            }, 100);
         });
     },
     cleanup: function() {
         console.log('Dice game cleaned up.');
-        // Здесь можно убрать специфические слушатели событий
     }
 };

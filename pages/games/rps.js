@@ -1,6 +1,5 @@
 "use strict";
 
-// Функция инициализации для этой страницы
 window.VMPR.currentPageScript = {
     init: function() {
         console.log('RPS game initialized.');
@@ -8,10 +7,9 @@ window.VMPR.currentPageScript = {
         const rpsResultText = document.getElementById('rps-result-text');
         const rpsBetAmountElement = document.getElementById('rps-bet-amount');
 
-        // Убедитесь, что global VMPR объекты доступны
+        // Глобальные объекты из VMPR
         const tg = window.VMPR.tg;
         const tonConnectUI = window.VMPR.tonConnectUI;
-        const userBalance = window.VMPR.userBalance; // Получаем текущий баланс
         const stakeAmount = window.VMPR.stakeAmount;
         const updateBalanceUI = window.VMPR.updateBalanceUI;
         const addHistoryEntry = window.VMPR.addHistoryEntry;
@@ -20,24 +18,22 @@ window.VMPR.currentPageScript = {
 
         rpsChoiceButtons.forEach(button => {
             button.addEventListener('click', async () => {
-                // Перепроверяем баланс и подключение перед каждой игрой
                 if (!tonConnectUI.connected) {
                     tg.showAlert('Пожалуйста, подключите кошелек TON для игры!');
                     return;
                 }
-                if (window.VMPR.userBalance < stakeAmount) { // Используем актуальный баланс из VMPR
+                if (window.VMPR.userBalance < stakeAmount) {
                     tg.showAlert('Недостаточно TON на балансе для этой ставки!');
                     return;
                 }
 
-                const playerChoice = button.getAttribute('data-choice');
                 rpsResultText.textContent = "Играем...";
                 rpsResultText.style.color = 'var(--text-color)';
 
-                // Демонстрация клиентской логики (НЕБЕЗОПАСНО ДЛЯ РЕАЛЬНЫХ СТАВОК)
                 setTimeout(() => {
                     const choices = ['rock', 'scissors', 'paper'];
                     const botChoice = choices[Math.floor(Math.random() * choices.length)];
+                    const playerChoice = button.getAttribute('data-choice');
 
                     let result;
                     let outcomeType = 'draw';
@@ -50,18 +46,18 @@ window.VMPR.currentPageScript = {
                     ) {
                         result = "Ты выиграл!";
                         outcomeType = 'win';
-                        window.VMPR.userBalance += stakeAmount; // Только для демонстрации
+                        window.VMPR.userBalance += stakeAmount;
                     } else {
                         result = "Ты проиграл";
                         outcomeType = 'loss';
-                        window.VMPR.userBalance -= stakeAmount; // Только для демонстрации
+                        window.VMPR.userBalance -= stakeAmount;
                     }
 
                     rpsResultText.textContent = `${result} Бот выбрал ${getEmoji(botChoice)}.`;
                     rpsResultText.style.color = `var(--${outcomeType}-color)`;
-                    updateBalanceUI(); // Обновляем баланс в UI
+                    updateBalanceUI();
                     addHistoryEntry(`КНБ | Ставка: ${stakeAmount.toFixed(2)} TON | ${result}`, outcomeType);
-                }, 1000); // Имитация задержки сети
+                }, 1000);
             });
         });
 
@@ -76,7 +72,8 @@ window.VMPR.currentPageScript = {
     },
     cleanup: function() {
         console.log('RPS game cleaned up.');
-        // Здесь можно убрать специфические слушатели событий, если они не будут убраны GC
-        // Например, если вы добавляли их не через делегирование
+        // Слушатели событий на button элементах автоматически удаляются,
+        // когда эти элементы удаляются из DOM при загрузке новой страницы.
+        // Если бы вы добавляли глобальные слушатели или таймеры, их нужно было бы здесь очищать.
     }
 };

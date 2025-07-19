@@ -3,10 +3,8 @@
 window.VMPR.currentPageScript = {
     init: function() {
         console.log('History page initialized.');
-        this.updateHistoryDisplay(); // Обновляем отображение истории при инициализации
-
+        this.updateHistoryDisplay();
         // Добавляем эту функцию в глобальный объект, чтобы app.js мог вызвать ее
-        // когда запись в историю добавляется из других модулей.
         window.VMPR.currentPageScript.updateHistoryDisplay = this.updateHistoryDisplay;
     },
     updateHistoryDisplay: function() {
@@ -37,7 +35,6 @@ window.VMPR.currentPageScript = {
     },
     cleanup: function() {
         console.log('History page cleaned up.');
-        // Сбрасываем функцию обновления истории, чтобы она не вызывалась после закрытия страницы
-        window.VMPR.currentPageScript.updateHistoryDisplay = undefined; 
+        window.VMPR.currentPageScript.updateHistoryDisplay = undefined;
     }
 };

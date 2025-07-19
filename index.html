@@ -5,13 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VMPR Stake</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/@tonconnect/sdk@latest/dist/tonconnect-sdk.min.js"></script>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
 
     <div class="app">
         <header class="header">
             <div class="user-info">
-                <img id="user-avatar" src="https://i.pravatar.cc/40" alt="Аватар пользователя" class="avatar">
+                <img id="user-avatar" src="assets/user.png" alt="Аватар пользователя" class="avatar">
                 <span id="username">Загрузка...</span>
             </div>
             <div class="balance">
@@ -21,16 +23,24 @@
         </header>
 
         <main id="main-content-container" class="main-content">
-            <div id="main-menu-content" class="tab active">
-                <button class="game-btn" data-target-page="games/rps">🎮 Камень, Ножницы, Бумага</button>
-                <button class="game-btn" data-target-page="games/dice">🎲 Кости</button>
-                <button class="game-btn" data-target-page="history/history">📜 История</button>
-            </div>
-        </main>
+            </main>
+
+        <nav class="bottom-nav">
+            <button class="nav-btn active" data-page="pages/games/index">
+                <img src="assets/joystick.png" alt="Игры">
+                <span>Игры</span>
+            </button>
+            <button class="nav-btn" data-page="pages/history/index">
+                <img src="assets/history.png" alt="История">
+                <span>История</span>
+            </button>
+            <button class="nav-btn" data-page="pages/settings/index">
+                <img src="assets/settings.png" alt="Настройки">
+                <span>Настройки</span>
+            </button>
+        </nav>
     </div>
 
     <script src="app.js"></script>
-    <script src="https://unpkg.com/@tonconnect/sdk@latest/dist/tonconnect-sdk.min.js"></script>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </body>
 </html>
