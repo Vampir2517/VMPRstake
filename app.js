@@ -24,24 +24,35 @@ document.addEventListener('DOMContentLoaded', async () => {
     const mainContentContainer = document.getElementById('main-content-container');
     const navButtons = document.querySelectorAll('.bottom-nav .nav-btn');
 
-    // --- Получение данных пользователя Telegram и аватара ---
+    // --- Получение данных пользователя Telegram и аватара с вашего БЭКЕНДА ---
     if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
-        const user = tg.initDataUnsafe.user;
-        const firstName = user.first_name || '';
-        const lastName = user.last_name || '';
-        usernameElement.textContent = user.username ? `@${user.username}` : `${firstName} ${lastName}`.trim() || 'Пользователь Telegram';
+        const userId = tg.initDataUnsafe.user.id;
+        try {
+            // !!! ВАЖНО: ЗАМЕНИТЕ НА АДРЕС ВАШЕГО БЭКЕНДА НА VERCELL !!!
+            // Пример: 'https://ваш-проект-на-vercel.vercel.app'
+            const backendBaseUrl = "https://telegram-webapp-backend.vercel.app";
+            const response = await fetch(`${backendBaseUrl}/api/user-data?user_id=${userId}`);
 
-        // Аватар: Telegram Web App напрямую не предоставляет аватара.
-        // Вы можете использовать заглушку на основе ID, как показано ниже,
-        // или свой сервер, который может получать аватар через Bot API.
-        // Для демонстрации используем Gravatar-подобный сервис или простую заглушку.
-        userAvatarElement.src = `https://api.adorable-avatars.com/avatars/40/${user.id}.png`; // Пример с Adorable Avatars
-        // userAvatarElement.src = `https://i.pravatar.cc/40?u=${user.id}`; // Другой пример заглушки
-        // Если у вас есть URL аватара через ваш сервер:
-        // userAvatarElement.src = `https://your-backend.com/get_avatar?user_id=${user.id}`;
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(`Failed to fetch user data: ${response.status} ${errorData.detail || response.statusText}`);
+            }
+            const userData = await response.json(); // Ожидаем { name: "...", username: "...", avatar_url: "..." }
+
+            usernameElement.textContent = userData.username ? `@${userData.username}` : userData.name.trim() || 'Пользователь Telegram';
+            userAvatarElement.src = userData.avatar_url || 'assets/user.png'; // Используем полученный URL, или дефолтную заглушку
+
+            console.log("User data from backend:", userData); // Для отладки
+
+        } catch (error) {
+            console.error('Ошибка при получении данных пользователя с бэкенда:', error);
+            usernameElement.textContent = 'Гость (ошибка загрузки данных)';
+            userAvatarElement.src = 'assets/user.png';
+            tg.showAlert(`Ошибка загрузки данных пользователя: ${error.message}`);
+        }
     } else {
-        usernameElement.textContent = 'Гость';
-        userAvatarElement.src = 'assets/user.png'; // Заглушка по умолчанию
+        usernameElement.textContent = 'Гость (нет данных WebApp)';
+        userAvatarElement.src = 'assets/user.png';
     }
 
     // --- Функция для обновления баланса в UI ---
@@ -64,7 +75,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // --- Инициализация TON Connect SDK ---
     window.VMPR.tonConnectUI = new TON_CONNECT_SDK.TonConnectUI({
-        manifestUrl: 'https://vampir2517.github.io/VMPRstake/tonconnect-manifest.json',
+        manifestUrl: 'https://vampir2517.github.io/VMPRstake/tonconnect-manifest.json', // URL вашего манифеста на GitHub Pages
         buttonRootId: 'ton-connect-btn-container'
     });
 
@@ -73,9 +84,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (walletInfo) {
             const address = walletInfo.account.address;
             const shortAddress = `${address.slice(0, 4)}...${address.slice(-4)}`;
-            usernameElement.textContent = shortAddress;
+            // usernameElement.textContent = shortAddress; // Если хотите показывать адрес кошелька вместо ника Telegram
 
-            const TONAPI_KEY = ''; // ВАШ_TONAPI_КЛЮЧ, если нужен. Оставьте пустым для TonApi Testnet или если Canvas предоставляет
+            // Здесь ВАШ_TONAPI_КЛЮЧ, если нужен. Оставьте пустым для TonApi Testnet или если Canvas предоставляет
+            // TONAPI_KEY_PLACEHOLDER - это заглушка, вам нужно получить ключ от TONAPI
+            const TONAPI_KEY = ''; 
             const headers = TONAPI_KEY ? { 'Authorization': `Bearer ${TONAPI_KEY}` } : {};
 
             try {
@@ -97,13 +110,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                 window.VMPR.updateBalanceUI();
             }
         } else {
-            // Кошелек отключен, возвращаем Telegram-ник
+            // Кошелек отключен, возвращаем Telegram-ник (или Гостя)
             if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
                 const user = tg.initDataUnsafe.user;
                 usernameElement.textContent = user.username ? `@${user.username}` : `${user.first_name || ''} ${user.last_name || ''}`.trim() || 'Пользователь Telegram';
             } else {
                 usernameElement.textContent = 'Гость';
             }
+            userAvatarElement.src = 'assets/user.png'; // Возвращаем заглушку, если нет данных от бэкенда
             window.VMPR.userBalance = 0.00;
             window.VMPR.updateBalanceUI();
             window.VMPR.addHistoryEntry('Кошелек отключен', 'info');
@@ -113,7 +127,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     window.VMPR.updateBalanceUI(); // Инициализация отображения баланса
 
     // --- Динамическая загрузка контента страниц ---
-    async function loadPage(pagePath) {
+    // Вынесем loadPage в глобальный VMPR, чтобы другие скрипты могли ее вызывать
+    window.VMPR.loadPage = async function(pagePath) {
         // 1. Очистка предыдущего скрипта
         if (window.VMPR.currentPageScript && typeof window.VMPR.currentPageScript.cleanup === 'function') {
             window.VMPR.currentPageScript.cleanup();
@@ -161,7 +176,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 navButtons.forEach(btn => btn.classList.remove('active'));
                 // Добавляем active класс к нажатой кнопке
                 button.classList.add('active');
-                loadPage(page);
+                window.VMPR.loadPage(page);
             }
         });
     });
@@ -176,10 +191,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (gamesButton) {
                 gamesButton.classList.add('active');
             }
-            loadPage('pages/games/index');
+            window.VMPR.loadPage('pages/games/index');
         }
     });
 
     // Загружаем начальную страницу (по умолчанию игры)
-    loadPage('pages/games/index');
+    window.VMPR.loadPage('pages/games/index');
 });
