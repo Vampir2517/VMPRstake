@@ -1,69 +1,91 @@
-"use strict"; // Добавлен строгий режим
+"use strict";
 
-document.addEventListener('DOMContentLoaded', () => {
+// Глобальные переменные для доступа из других модулей
+window.VMPR = window.VMPR || {};
+window.VMPR.tg = null;
+window.VMPR.tonConnectUI = null;
+window.VMPR.userBalance = 0.00;
+window.VMPR.stakeAmount = 1.00; // Фиксированная ставка для демонстрации
+window.VMPR.updateBalanceUI = null; // Функция для обновления UI баланса
+window.VMPR.addHistoryEntry = null; // Функция для добавления записи в историю
+window.VMPR.currentPageScript = null; // Для отслеживания текущего загруженного скрипта
+
+document.addEventListener('DOMContentLoaded', async () => {
     // --- Инициализация Telegram Web App ---
     const tg = window.Telegram.WebApp;
+    window.VMPR.tg = tg; // Сохраняем в глобальную переменную
     tg.expand(); // Разворачиваем приложение на весь экран
     tg.ready();  // Сообщаем Telegram, что приложение готово
 
-    // --- Инициализация TON Connect SDK ---
-    // Убедитесь, что manifestUrl точно соответствует URL вашего приложения и манифеста!
-    const tonConnectUI = new TON_CONNECT_SDK.TonConnectUI({
-        manifestUrl: 'https://vampir2517.github.io/VMPRstake/tonconnect-manifest.json',
-        buttonRootId: 'ton-connect-btn-container' // SDK сам вставит кнопку подключения сюда
-    });
-
     // --- Элементы UI ---
     const usernameElement = document.getElementById('username');
+    const userAvatarElement = document.getElementById('user-avatar');
     const balanceElement = document.getElementById('balance-amount');
-    const historyList = document.getElementById('history-list');
+    const mainContentContainer = document.getElementById('main-content-container');
+    const historyList = document.createElement('ul'); // В app.js больше не будет истории, она в history.html
+    historyList.id = 'history-list';
+    historyList.classList.add('history-list');
 
-    // --- Переменные для состояния игры (для демонстрации) ---
-    let userBalance = 0.00; // Баланс пользователя, будет обновляться с блокчейна
-    const stakeAmount = 1.00; // Фиксированная ставка для демонстрации
+    // --- Получение данных пользователя Telegram ---
+    if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+        const user = tg.initDataUnsafe.user;
+        usernameElement.textContent = user.username ? `@${user.username}` : `${user.first_name || ''} ${user.last_name || ''}`.trim() || 'Пользователь Telegram';
+        // Telegram Web App не предоставляет прямой доступ к аватару.
+        // Для аватара обычно требуется серверная часть, использующая Bot API.
+        // Пока оставим заглушку или можно использовать Gravatar по user.id, если хотите.
+        // userAvatarElement.src = `URL_К_АВАТАРУ_ЧЕРЕЗ_БОТА_API_ИЛИ_ЗАГЛУШКА`;
+        userAvatarElement.src = `https://i.pravatar.cc/40?u=${user.id}`; // Пример Gravatar-подобной заглушки
+    } else {
+        usernameElement.textContent = 'Vampir2615'; // Дефолтное значение
+    }
 
     // --- Функция для обновления баланса в UI ---
-    function updateBalanceUI() {
-        balanceElement.textContent = userBalance.toFixed(2);
-    }
+    window.VMPR.updateBalanceUI = function() {
+        balanceElement.textContent = window.VMPR.userBalance.toFixed(2);
+    };
 
-    // --- Функция для добавления записи в историю ---
-    function addHistoryEntry(text, type = 'info') {
-        const listItem = document.createElement('li');
-        listItem.textContent = text;
-        if (type === 'win') {
-            listItem.classList.add('win');
-        } else if (type === 'loss') {
-            listItem.classList.add('loss');
-        } else if (type === 'draw') {
-            listItem.classList.add('draw');
+    // --- Функция для добавления записи в историю (будет использоваться модулями) ---
+    // Это теперь функция-заглушка или для отладки, т.к. история будет в отдельном файле
+    window.VMPR.addHistoryEntry = function(text, type = 'info') {
+        // Логика добавления записи в DOM теперь должна быть в history.js
+        // Эта функция будет вызываться модулями игр и передавать данные
+        // которые history.js будет слушать или запрашивать.
+        console.log(`История добавлена (имитация): ${text} (${type})`);
+        // В реальном приложении:
+        // 1. Отправка на бэкенд
+        // 2. Сохранение в localStorage (для демо)
+        let historyData = JSON.parse(localStorage.getItem('gameHistory')) || [];
+        historyData.unshift({ text, type, timestamp: new Date().toISOString() });
+        // Ограничиваем количество записей
+        historyData = historyData.slice(0, 10); 
+        localStorage.setItem('gameHistory', JSON.stringify(historyData));
+
+        // Если страница истории открыта, обновим ее
+        if (window.VMPR.currentPageScript && typeof window.VMPR.currentPageScript.updateHistoryDisplay === 'function') {
+            window.VMPR.currentPageScript.updateHistoryDisplay();
         }
-        // Добавляем новый элемент в начало списка
-        historyList.prepend(listItem);
-        // Ограничиваем количество записей в истории (например, до 10)
-        while (historyList.children.length > 10) {
-            historyList.removeChild(historyList.lastChild);
-        }
-    }
+    };
+
+
+    // --- Инициализация TON Connect SDK ---
+    window.VMPR.tonConnectUI = new TON_CONNECT_SDK.TonConnectUI({
+        manifestUrl: 'https://vampir2517.github.io/VMPRstake/tonconnect-manifest.json',
+        buttonRootId: 'ton-connect-btn-container'
+    });
 
     // --- Обновление UI при подключении/отключении кошелька TON ---
-    tonConnectUI.onStatusChange(async (walletInfo) => {
+    window.VMPR.tonConnectUI.onStatusChange(async (walletInfo) => {
         if (walletInfo) {
             // Кошелек подключен
             const address = walletInfo.account.address;
-            const shortAddress = `${address.slice(0, 4)}...${address.slice(-4)}`; // Исправлен шаблонный литерал
+            const shortAddress = `${address.slice(0, 4)}...${address.slice(-4)}`;
             usernameElement.textContent = shortAddress; // Показываем сокращенный адрес
 
-            // --- Получение баланса TON с блокчейна ---
-            // ВНИМАНИЕ: Для реального приложения вам понадобится получить свой API-ключ от TonAPI (tonapi.io)
-            // и вставить его вместо 'ВАШ_TONAPI_КЛЮЧ'. Без ключа запросы могут быть ограничены.
-            const TONAPI_KEY = ''; // Оставьте пустым, если Canvas предоставляет его автоматически, иначе вставьте свой ключ.
-
+            const TONAPI_KEY = ''; // ВАШ_TONAPI_КЛЮЧ, если нужен
             if (!TONAPI_KEY) {
                 console.warn('ВНИМАНИЕ: TONAPI_KEY не установлен. Баланс может не обновляться.');
-                tg.showAlert('Для получения актуального баланса TONAPI_KEY должен быть установлен.');
+                // tg.showAlert('Для получения актуального баланса TONAPI_KEY должен быть установлен.');
             }
-
             const headers = TONAPI_KEY ? { 'Authorization': `Bearer ${TONAPI_KEY}` } : {};
 
             try {
@@ -73,186 +95,127 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 const data = await response.json();
                 if (data && data.balance) {
-                    const balanceNano = BigInt(data.balance); // Баланс в нанотонах
-                    userBalance = Number(balanceNano) / 1_000_000_000; // Конвертируем в TON
-                    updateBalanceUI();
-                    addHistoryEntry(`Кошелек подключен: ${shortAddress}`, 'info');
+                    const balanceNano = BigInt(data.balance);
+                    window.VMPR.userBalance = Number(balanceNano) / 1_000_000_000;
+                    window.VMPR.updateBalanceUI();
+                    window.VMPR.addHistoryEntry(`Кошелек подключен: ${shortAddress}`, 'info');
                 }
             } catch (error) {
                 console.error('Ошибка при получении баланса:', error);
-                tg.showAlert(`Ошибка получения баланса: ${error.message}`); // Используйте tg.showAlert для уведомлений
-                userBalance = 0.00; // Сбрасываем баланс при ошибке
-                updateBalanceUI();
+                tg.showAlert(`Ошибка получения баланса: ${error.message}`);
+                window.VMPR.userBalance = 0.00;
+                window.VMPR.updateBalanceUI();
             }
 
         } else {
             // Кошелек отключен
-            usernameElement.textContent = 'Vampir2615'; // Возвращаем ник
-            userBalance = 0.00;
-            updateBalanceUI();
-            addHistoryEntry('Кошелек отключен', 'info');
+            if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+                const user = tg.initDataUnsafe.user;
+                usernameElement.textContent = user.username ? `@${user.username}` : `${user.first_name || ''} ${user.last_name || ''}`.trim() || 'Пользователь Telegram';
+            } else {
+                usernameElement.textContent = 'Vampir2615';
+            }
+            window.VMPR.userBalance = 0.00;
+            window.VMPR.updateBalanceUI();
+            window.VMPR.addHistoryEntry('Кошелек отключен', 'info');
         }
     });
 
-    // --- Логика переключения вкладок ---
-    const tabs = document.querySelectorAll('.tab');
-    // Используем querySelectorAll для game-btn, так как data-tab может быть на разных элементах
-    const gameButtons = document.querySelectorAll('.game-btn[data-tab]');
-    const backButtons = document.querySelectorAll('.back-btn');
+    window.VMPR.updateBalanceUI(); // Первичное обновление баланса
 
-    function showTab(tabId) {
-        tabs.forEach(tab => {
-            tab.classList.remove('active');
-        });
-        // Убедимся, что ID вкладок соответствуют. Например, 'main-tab' для main
-        const targetTab = document.getElementById(tabId + '-tab') || document.getElementById(tabId);
-        if (targetTab) {
-            targetTab.classList.add('active');
+    // --- Динамическая загрузка контента ---
+    async function loadContent(pagePath) {
+        // Удаляем предыдущие скрипты
+        if (window.VMPR.currentPageScript && typeof window.VMPR.currentPageScript.cleanup === 'function') {
+            window.VMPR.currentPageScript.cleanup(); // Вызываем функцию очистки, если она есть
+        }
+        const oldScript = document.getElementById('dynamic-script');
+        if (oldScript) {
+            oldScript.remove();
+        }
+
+        try {
+            const response = await fetch(`${pagePath}.html`);
+            if (!response.ok) throw new Error(`Failed to load ${pagePath}.html`);
+            const html = await response.text();
+            mainContentContainer.innerHTML = html;
+
+            const script = document.createElement('script');
+            script.id = 'dynamic-script';
+            script.src = `${pagePath}.js`;
+            script.onload = () => {
+                // После загрузки скрипта, можно вызвать его инициализацию
+                // предполагается, что каждый скрипт экспортирует функцию init()
+                if (window.VMPR.currentPageScript && typeof window.VMPR.currentPageScript.init === 'function') {
+                    window.VMPR.currentPageScript.init();
+                }
+            };
+            script.onerror = (e) => console.error(`Failed to load script ${pagePath}.js`, e);
+            document.body.appendChild(script);
+
+            // Добавляем класс 'active' только к загруженному контенту, если нужно.
+            // В данной структуре, main-menu-content всегда будет видимым,
+            // а загружаемый контент будет его заменять.
+            // Поэтому, удаляем класс active с main-menu-content при загрузке.
+            const mainMenuContent = document.getElementById('main-menu-content');
+            if (mainMenuContent) {
+                mainMenuContent.classList.remove('active');
+            }
+
+        } catch (error) {
+            console.error('Ошибка загрузки контента:', error);
+            tg.showAlert(`Ошибка загрузки страницы: ${error.message}`);
+            // В случае ошибки возвращаемся к главному меню
+            showMainMenu();
         }
     }
 
-    // Изначально показываем главную вкладку
-    showTab('main'); 
+    // --- Отображение главного меню ---
+    function showMainMenu() {
+        // Удаляем предыдущие скрипты
+        if (window.VMPR.currentPageScript && typeof window.VMPR.currentPageScript.cleanup === 'function') {
+            window.VMPR.currentPageScript.cleanup();
+        }
+        const oldScript = document.getElementById('dynamic-script');
+        if (oldScript) {
+            oldScript.remove();
+        }
+        window.VMPR.currentPageScript = null; // Сбрасываем текущий скрипт
 
-    gameButtons.forEach(button => {
-        button.addEventListener('click', (event) => {
-            // event.stopPropagation(); // Можно добавить, если есть проблемы с всплытием
-            const tabId = button.getAttribute('data-tab');
-            if (tabId) {
-                showTab(tabId);
-            }
+        const mainMenuHtml = `
+            <div id="main-menu-content" class="tab active">
+                <button class="game-btn" data-target-page="games/rps">🎮 Камень, Ножницы, Бумага</button>
+                <button class="game-btn" data-target-page="games/dice">🎲 Кости</button>
+                <button class="game-btn" data-target-page="history/history">📜 История</button>
+            </div>
+        `;
+        mainContentContainer.innerHTML = mainMenuHtml;
+        setupMainMenuButtons(); // Перенастраиваем слушатели кнопок главного меню
+    }
+
+    // --- Настройка кнопок главного меню ---
+    function setupMainMenuButtons() {
+        document.querySelectorAll('#main-menu-content .game-btn').forEach(button => {
+            button.removeEventListener('click', handleGameButtonClick); // Избегаем дублирования слушателей
+            button.addEventListener('click', handleGameButtonClick);
         });
-    });
+    }
 
-    backButtons.forEach(button => {
-        button.addEventListener('click', (event) => {
-            // event.stopPropagation();
-            showTab('main');
-        });
-    });
-
-    // --- Демонстрационная логика игры "Камень, Ножницы, Бумага" (КНБ) ---
-    const rpsChoiceButtons = document.querySelectorAll('#game-rps-tab .choice-btn');
-    const rpsResultText = document.getElementById('rps-result-text');
-    const rpsBetAmountElement = document.getElementById('rps-bet-amount');
-    rpsBetAmountElement.textContent = stakeAmount.toFixed(2); // Отображаем ставку
-
-    rpsChoiceButtons.forEach(button => {
-        button.addEventListener('click', async () => {
-            if (!tonConnectUI.connected) {
-                tg.showAlert('Пожалуйста, подключите кошелек TON для игры!');
-                return;
-            }
-            if (userBalance < stakeAmount) {
-                tg.showAlert('Недостаточно TON на балансе для этой ставки!');
-                return;
-            }
-
-            rpsResultText.textContent = "Играем...";
-            rpsResultText.style.color = 'var(--text-color)';
-
-            // Демонстрация клиентской логики (НЕБЕЗОПАСНО ДЛЯ РЕАЛЬНЫХ СТАВОК)
-            setTimeout(() => {
-                const choices = ['rock', 'scissors', 'paper'];
-                const botChoice = choices[Math.floor(Math.random() * choices.length)];
-                const playerChoice = button.getAttribute('data-choice'); // Получаем выбор игрока здесь
-
-                let result;
-                let outcomeType = 'draw';
-                if (playerChoice === botChoice) {
-                    result = "Ничья!";
-                } else if (
-                    (playerChoice === 'rock' && botChoice === 'scissors') ||
-                    (playerChoice === 'scissors' && botChoice === 'paper') ||
-                    (playerChoice === 'paper' && botChoice === 'rock')
-                ) {
-                    result = "Ты выиграл!";
-                    outcomeType = 'win';
-                    userBalance += stakeAmount; // Только для демонстрации
-                } else {
-                    result = "Ты проиграл";
-                    outcomeType = 'loss';
-                    userBalance -= stakeAmount; // Только для демонстрации
-                }
-
-                rpsResultText.textContent = `${result} Бот выбрал ${getEmoji(botChoice)}.`;
-                rpsResultText.style.color = `var(--${outcomeType}-color)`;
-                updateBalanceUI();
-                addHistoryEntry(`КНБ | Ставка: ${stakeAmount.toFixed(2)} TON | ${result}`, outcomeType);
-            }, 1000); // Имитация задержки сети
-        });
-    });
-
-    function getEmoji(choice) {
-        switch (choice) {
-            case 'rock': return '🪨';
-            case 'scissors': return '✂️';
-            case 'paper': return '📄';
-            default: return '';
+    function handleGameButtonClick(event) {
+        const pagePath = event.currentTarget.getAttribute('data-target-page');
+        if (pagePath) {
+            loadContent(pagePath);
         }
     }
 
-    // --- Демонстрационная логика игры "Кости" ---
-    const rollDiceBtn = document.getElementById('roll-dice-btn');
-    const playerDiceEl = document.getElementById('player-dice');
-    const botDiceEl = document.getElementById('bot-dice');
-    const diceResultText = document.getElementById('dice-result-text');
-    const diceBetAmountElement = document.getElementById('dice-bet-amount');
-    diceBetAmountElement.textContent = stakeAmount.toFixed(2); // Отображаем ставку
+    // Инициализация кнопок главного меню при загрузке
+    setupMainMenuButtons();
 
-    rollDiceBtn.addEventListener('click', () => {
-        if (!tonConnectUI.connected) {
-            tg.showAlert('Пожалуйста, подключите кошелек TON для игры!');
-            return;
+    // Слушатель для кнопок "Назад"
+    // Эти кнопки будут внутри загружаемого контента, поэтому мы вешаем слушатель на основной контейнер, используя делегирование событий.
+    mainContentContainer.addEventListener('click', (event) => {
+        if (event.target.classList.contains('back-btn')) {
+            showMainMenu();
         }
-        if (userBalance < stakeAmount) {
-            tg.showAlert('Недостаточно TON на балансе для этой ставки!');
-            return;
-        }
-
-        diceResultText.textContent = "";
-        diceResultText.style.color = 'var(--text-color)';
-        playerDiceEl.textContent = '?';
-        botDiceEl.textContent = '?';
-
-        // Демонстрация клиентской логики (НЕБЕЗОПАСНО ДЛЯ РЕАЛЬНЫХ СТАВОК)
-        let playerRoll, botRoll;
-        let rollCount = 0;
-        const maxRolls = 15; // Количество "перебросов" для анимации
-
-        const interval = setInterval(() => {
-            playerRoll = Math.floor(Math.random() * 6) + 1;
-            botRoll = Math.floor(Math.random() * 6) + 1;
-            playerDiceEl.textContent = playerRoll;
-            botDiceEl.textContent = botRoll;
-            rollCount++;
-            if (rollCount >= maxRolls) {
-                clearInterval(interval);
-                // Финальный бросок после анимации
-                playerRoll = Math.floor(Math.random() * 6) + 1;
-                botRoll = Math.floor(Math.random() * 6) + 1;
-                playerDiceEl.textContent = playerRoll;
-                botDiceEl.textContent = botRoll;
-
-                let result;
-                let outcomeType = 'draw';
-                if (playerRoll > botRoll) {
-                    result = "Ты выиграл!";
-                    outcomeType = 'win';
-                    userBalance += stakeAmount; // Только для демонстрации
-                } else if (botRoll > playerRoll) {
-                    result = "Ты проиграл";
-                    outcomeType = 'loss';
-                    userBalance -= stakeAmount; // Только для демонстрации
-                } else {
-                    result = "Ничья!";
-                    outcomeType = 'draw';
-                }
-                diceResultText.textContent = result;
-                diceResultText.style.color = `var(--${outcomeType}-color)`;
-                updateBalanceUI();
-                addHistoryEntry(`Кости | Ставка: ${stakeAmount.toFixed(2)} TON | ${result}`, outcomeType);
-            }
-        }, 100); // Скорость анимации
     });
 });
