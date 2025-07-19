@@ -171,27 +171,28 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // --- Отображение главного меню ---
-    function showMainMenu() {
-        // Удаляем предыдущие скрипты
-        if (window.VMPR.currentPageScript && typeof window.VMPR.currentPageScript.cleanup === 'function') {
-            window.VMPR.currentPageScript.cleanup();
-        }
-        const oldScript = document.getElementById('dynamic-script');
-        if (oldScript) {
-            oldScript.remove();
-        }
-        window.VMPR.currentPageScript = null; // Сбрасываем текущий скрипт
-
-        const mainMenuHtml = `
-            <div id="main-menu-content" class="tab active">
-                <button class="game-btn" data-target-page="games/rps">🎮 Камень, Ножницы, Бумага</button>
-                <button class="game-btn" data-target-page="games/dice">🎲 Кости</button>
-                <button class="game-btn" data-target-page="history/history">📜 История</button>
-            </div>
-        `;
-        mainContentContainer.innerHTML = mainMenuHtml;
-        setupMainMenuButtons(); // Перенастраиваем слушатели кнопок главного меню
+function showMainMenu() {
+    // Удаляем предыдущие скрипты
+    if (window.VMPR.currentPageScript && typeof window.VMPR.currentPageScript.cleanup === 'function') {
+        window.VMPR.currentPageScript.cleanup();
     }
+    const oldScript = document.getElementById('dynamic-script');
+    if (oldScript) {
+        oldScript.remove();
+    }
+    window.VMPR.currentPageScript = null; // Сбрасываем текущий скрипт
+
+    const mainMenuHtml = `
+        <div id="main-menu-content" class="tab active">
+            <button class="game-btn" data-target-page="games/rps">🎮 Камень, Ножницы, Бумага</button>
+            <button class="game-btn" data-target-page="games/dice">🎲 Кости</button>
+            <button class="game-btn" data-target-page="history/history">📜 История</button>
+        </div>
+    `;
+    mainContentContainer.innerHTML = mainMenuHtml;
+    // !!! ВАЖНОЕ ИЗМЕНЕНИЕ: Вызываем настройку кнопок после добавления HTML !!!
+    setupMainMenuButtons(); 
+}
 
     // --- Настройка кнопок главного меню ---
     function setupMainMenuButtons() {
