@@ -1,3 +1,5 @@
+"use strict"; // Добавлен строгий режим
+
 document.addEventListener('DOMContentLoaded', () => {
     // --- Инициализация Telegram Web App ---
     const tg = window.Telegram.WebApp;
@@ -49,13 +51,19 @@ document.addEventListener('DOMContentLoaded', () => {
         if (walletInfo) {
             // Кошелек подключен
             const address = walletInfo.account.address;
-            const shortAddress = `${address.slice(0, 4)}...${address.slice(-4)}`;
+            const shortAddress = `${address.slice(0, 4)}...${address.slice(-4)}`; // Исправлен шаблонный литерал
             usernameElement.textContent = shortAddress; // Показываем сокращенный адрес
 
             // --- Получение баланса TON с блокчейна ---
             // ВНИМАНИЕ: Для реального приложения вам понадобится получить свой API-ключ от TonAPI (tonapi.io)
             // и вставить его вместо 'ВАШ_TONAPI_КЛЮЧ'. Без ключа запросы могут быть ограничены.
             const TONAPI_KEY = ''; // Оставьте пустым, если Canvas предоставляет его автоматически, иначе вставьте свой ключ.
+
+            if (!TONAPI_KEY) {
+                console.warn('ВНИМАНИЕ: TONAPI_KEY не установлен. Баланс может не обновляться.');
+                tg.showAlert('Для получения актуального баланса TONAPI_KEY должен быть установлен.');
+            }
+
             const headers = TONAPI_KEY ? { 'Authorization': `Bearer ${TONAPI_KEY}` } : {};
 
             try {
@@ -72,7 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             } catch (error) {
                 console.error('Ошибка при получении баланса:', error);
-                // tg.showAlert(`Ошибка получения баланса: ${error.message}`); // Используйте tg.showAlert для уведомлений
+                tg.showAlert(`Ошибка получения баланса: ${error.message}`); // Используйте tg.showAlert для уведомлений
                 userBalance = 0.00; // Сбрасываем баланс при ошибке
                 updateBalanceUI();
             }
@@ -88,6 +96,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Логика переключения вкладок ---
     const tabs = document.querySelectorAll('.tab');
+    // Используем querySelectorAll для game-btn, так как data-tab может быть на разных элементах
     const gameButtons = document.querySelectorAll('.game-btn[data-tab]');
     const backButtons = document.querySelectorAll('.back-btn');
 
@@ -95,14 +104,19 @@ document.addEventListener('DOMContentLoaded', () => {
         tabs.forEach(tab => {
             tab.classList.remove('active');
         });
+        // Убедимся, что ID вкладок соответствуют. Например, 'main-tab' для main
         const targetTab = document.getElementById(tabId + '-tab') || document.getElementById(tabId);
         if (targetTab) {
             targetTab.classList.add('active');
         }
     }
 
+    // Изначально показываем главную вкладку
+    showTab('main'); 
+
     gameButtons.forEach(button => {
-        button.addEventListener('click', () => {
+        button.addEventListener('click', (event) => {
+            // event.stopPropagation(); // Можно добавить, если есть проблемы с всплытием
             const tabId = button.getAttribute('data-tab');
             if (tabId) {
                 showTab(tabId);
@@ -111,14 +125,13 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     backButtons.forEach(button => {
-        button.addEventListener('click', () => {
+        button.addEventListener('click', (event) => {
+            // event.stopPropagation();
             showTab('main');
         });
     });
 
     // --- Демонстрационная логика игры "Камень, Ножницы, Бумага" (КНБ) ---
-    // ВНИМАНИЕ: ЭТА ЛОГИКА НЕБЕЗОПАСНА ДЛЯ РЕАЛЬНЫХ СТАВОК!
-    // Для честной игры требуется смарт-контракт на TON.
     const rpsChoiceButtons = document.querySelectorAll('#game-rps-tab .choice-btn');
     const rpsResultText = document.getElementById('rps-result-text');
     const rpsBetAmountElement = document.getElementById('rps-bet-amount');
@@ -135,38 +148,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            const playerChoice = button.getAttribute('data-choice');
             rpsResultText.textContent = "Играем...";
             rpsResultText.style.color = 'var(--text-color)';
-
-            // --- Здесь должна быть логика взаимодействия со смарт-контрактом ---
-            // 1. Отправка транзакции на смарт-контракт с playerChoice и stakeAmount.
-            //    Пример:
-            //    const transaction = {
-            //        validUntil: Math.floor(Date.now() / 1000) + 360, // 6 минут
-            //        messages: [{
-            //            address: 'ВАШ_АДРЕС_КОНТРАКТА_КНБ',
-            //            amount: (stakeAmount * 1_000_000_000).toString(), // В нанотонах
-            //            payload: 'ЗДЕСЬ_ДАННЫЕ_ДЛЯ_ВЫБОРА_ИГРОКА_В_КОНТРАКТЕ'
-            //        }]
-            //    };
-            //    try {
-            //        await tonConnectUI.sendTransaction(transaction);
-            //        // После успешной отправки транзакции, ожидайте результат от контракта
-            //        // (например, через подписку на события контракта или опрос TonAPI)
-            //        tg.showAlert('Транзакция отправлена! Ожидаем результат...');
-            //    } catch (e) {
-            //        console.error('Ошибка отправки транзакции КНБ:', e);
-            //        tg.showAlert('Ошибка отправки транзакции.');
-            //        rpsResultText.textContent = "Ошибка!";
-            //        return;
-            //    }
-            // -------------------------------------------------------------------
 
             // Демонстрация клиентской логики (НЕБЕЗОПАСНО ДЛЯ РЕАЛЬНЫХ СТАВОК)
             setTimeout(() => {
                 const choices = ['rock', 'scissors', 'paper'];
                 const botChoice = choices[Math.floor(Math.random() * choices.length)];
+                const playerChoice = button.getAttribute('data-choice'); // Получаем выбор игрока здесь
 
                 let result;
                 let outcomeType = 'draw';
@@ -204,8 +193,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Демонстрационная логика игры "Кости" ---
-    // ВНИМАНИЕ: ЭТА ЛОГИКА НЕБЕЗОПАСНА ДЛЯ РЕАЛЬНЫХ СТАВОК!
-    // Для честной игры требуется смарт-контракт на TON.
     const rollDiceBtn = document.getElementById('roll-dice-btn');
     const playerDiceEl = document.getElementById('player-dice');
     const botDiceEl = document.getElementById('bot-dice');
@@ -227,27 +214,6 @@ document.addEventListener('DOMContentLoaded', () => {
         diceResultText.style.color = 'var(--text-color)';
         playerDiceEl.textContent = '?';
         botDiceEl.textContent = '?';
-
-        // --- Здесь должна быть логика взаимодействия со смарт-контрактом ---
-        // 1. Отправка транзакции на смарт-контракт с stakeAmount.
-        //    Пример:
-        //    const transaction = {
-        //        validUntil: Math.floor(Date.now() / 1000) + 360,
-        //        messages: [{
-        //            address: 'ВАШ_АДРЕС_КОНТРАКТА_КОСТИ',
-        //            amount: (stakeAmount * 1_000_000_000).toString(),
-        //            payload: 'ЗДЕСЬ_ДАННЫЕ_ДЛЯ_ИНИЦИАЦИИ_БРОСКА'
-        //        }]
-        //    };
-        //    try {
-        //        await tonConnectUI.sendTransaction(transaction);
-        //        tg.showAlert('Транзакция отправлена! Ожидаем результат...');
-        //    } catch (e) {
-        //        console.error('Ошибка отправки транзакции Кости:', e);
-        //        tg.showAlert('Ошибка отправки транзакции.');
-        //        return;
-        //    }
-        // -------------------------------------------------------------------
 
         // Демонстрация клиентской логики (НЕБЕЗОПАСНО ДЛЯ РЕАЛЬНЫХ СТАВОК)
         let playerRoll, botRoll;

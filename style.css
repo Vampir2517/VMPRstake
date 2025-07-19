@@ -34,6 +34,8 @@ body {
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5); /* Тень */
     padding: 20px;
     box-sizing: border-box;
+    position: relative; /* Добавляем для правильного позиционирования z-index */
+    z-index: 1; /* Убедимся, что приложение поверх других потенциальных элементов */
 }
 
 /* Шапка приложения */
@@ -44,6 +46,8 @@ body {
     margin-bottom: 30px;
     padding-bottom: 15px;
     border-bottom: 1px solid var(--border-color); /* Разделитель */
+    position: relative; /* Важно для z-index дочерних элементов */
+    z-index: 2; /* Убедимся, что шапка поверх контента, если это нужно */
 }
 
 .user-info {
@@ -71,6 +75,11 @@ body {
 }
 
 /* Стили для кнопки TON Connect, которая вставляется SDK */
+#ton-connect-btn-container {
+    position: relative; /* Важно для z-index дочерней кнопки SDK */
+    z-index: 3; /* Убедимся, что контейнер кнопки поверх всего */
+}
+
 #ton-connect-btn-container button {
     background-color: var(--primary-red) !important; /* Переопределяем стили SDK */
     color: var(--text-color) !important;
@@ -81,6 +90,7 @@ body {
     cursor: pointer !important;
     transition: background-color 0.2s ease-in-out, transform 0.2s ease-in-out !important;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); /* Тень для кнопки */
+    pointer-events: auto; /* Убедимся, что кнопка получает события мыши */
 }
 
 #ton-connect-btn-container button:hover {
@@ -91,6 +101,8 @@ body {
 /* Основное содержимое (вкладки) */
 .main-content {
     width: 100%;
+    position: relative; /* Важно для z-index дочерних вкладок */
+    z-index: 1; /* Основной контент под шапкой */
 }
 
 .tab {
@@ -99,10 +111,19 @@ body {
     align-items: center;
     width: 100%;
     animation: fadeIn 0.5s ease-out; /* Анимация появления вкладок */
+    /* Убедимся, что вкладки имеют z-index, если есть наложения */
+    position: absolute; /* Позволяет вкладкам накладываться друг на друга */
+    top: 0;
+    left: 0;
+    padding: inherit; /* Используем padding от .app или задаем свой */
+    box-sizing: border-box;
+    pointer-events: none; /* По умолчанию вкладки не реагируют на события */
 }
 
 .tab.active {
     display: flex;
+    pointer-events: auto; /* Активная вкладка реагирует на события */
+    position: static; /* Активная вкладка занимает место в потоке */
 }
 
 /* Анимация появления */
@@ -125,6 +146,9 @@ body {
     margin-bottom: 15px;
     transition: all 0.2s ease-in-out;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); /* Тень для кнопок */
+    pointer-events: auto; /* Убедимся, что кнопки получают события мыши */
+    z-index: 10; /* Убедимся, что кнопки поверх всего контента */
+    position: relative; /* Для z-index */
 }
 
 .game-btn:hover, .choice-btn:hover {
@@ -169,6 +193,8 @@ h2 {
     margin: 20px 0;
     width: 100%;
     flex-wrap: wrap; /* Перенос на новую строку на маленьких экранах */
+    z-index: 5; /* Убедимся, что кнопки выбора поверх других элементов */
+    position: relative;
 }
 
 .choice-btn {
@@ -191,6 +217,8 @@ h2 {
     gap: 20px;
     margin: 20px 0;
     width: 100%;
+    z-index: 5; /* Убедимся, что кубики поверх других элементов */
+    position: relative;
 }
 
 .dice {
@@ -215,6 +243,8 @@ h2 {
     height: 30px; /* Фиксированная высота для предотвращения CLS */
     text-align: center;
     min-height: 1.5em; /* Минимальная высота для текста */
+    z-index: 5; /* Убедимся, что текст результата виден */
+    position: relative;
 }
 
 /* История игр */
@@ -228,6 +258,8 @@ h2 {
     border-radius: 10px;
     padding: 10px;
     box-sizing: border-box;
+    z-index: 5; /* Убедимся, что список истории виден */
+    position: relative;
 }
 
 .history-list li {
