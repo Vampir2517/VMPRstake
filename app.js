@@ -6,8 +6,8 @@ window.VMPR.tg = null;
 window.VMPR.tonConnectUI = null;
 window.VMPR.userBalance = 0.00;
 window.VMPR.stakeAmount = 1.00; // Фиксированная ставка для демонстрации
-window.VMPR.updateBalanceUI = null; // Функция для обновления UI баланса
-window.VMPR.addHistoryEntry = null; // Функция для добавления записи в историю
+window.VMPR.updateBalanceUI = null; // Будет присвоена функция для обновления UI баланса
+window.VMPR.addHistoryEntry = null; // Будет присвоена функция для добавления записи в историю
 window.VMPR.currentPageScript = null; // Для отслеживания текущего загруженного скрипта
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -16,6 +16,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     window.VMPR.tg = tg; // Сохраняем в глобальную переменную
     tg.expand();
     tg.ready();
+    tg.MainButton.hide(); // Скрываем основную кнопку Telegram по умолчанию
 
     // --- Элементы UI из index.html ---
     const usernameElement = document.getElementById('username');
@@ -29,7 +30,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         const userId = tg.initDataUnsafe.user.id;
         try {
             // !!! ВАЖНО: ЗАМЕНИТЕ НА АДРЕС ВАШЕГО БЭКЕНДА НА VERCELL !!!
-            // Пример: 'https://ваш-проект-на-vercel.vercel.app'
             const backendBaseUrl = "https://telegram-webapp-backend.vercel.app";
             const response = await fetch(`${backendBaseUrl}/api/user-data?user_id=${userId}`);
 
@@ -37,9 +37,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const errorData = await response.json();
                 throw new Error(`Failed to fetch user data: ${response.status} ${errorData.detail || response.statusText}`);
             }
-            const userData = await response.json(); // Ожидаем { name: "...", username: "...", avatar_url: "..." }
+            const userData = await response.json(); // Ожидаем { user_id: ..., first_name: "...", username: "...", avatar_url: "..." }
 
-            usernameElement.textContent = userData.username ? `@${userData.username}` : userData.name.trim() || 'Пользователь Telegram';
+            usernameElement.textContent = userData.username ? `@${userData.username}` : userData.first_name.trim() || 'Пользователь Telegram';
             userAvatarElement.src = userData.avatar_url || 'assets/user.png'; // Используем полученный URL, или дефолтную заглушку
 
             console.log("User data from backend:", userData); // Для отладки
@@ -76,7 +76,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // --- Инициализация TON Connect SDK ---
     window.VMPR.tonConnectUI = new TON_CONNECT_SDK.TonConnectUI({
         manifestUrl: 'https://vampir2517.github.io/VMPRstake/tonconnect-manifest.json', // URL вашего манифеста на GitHub Pages
-        buttonRootId: 'ton-connect-btn-container'
+        buttonRootId: 'ton-connect-btn-container' // Это ID для кнопки, которая будет создана TonConnect SDK
     });
 
     // --- Обновление UI при подключении/отключении кошелька TON ---
@@ -84,15 +84,19 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (walletInfo) {
             const address = walletInfo.account.address;
             const shortAddress = `${address.slice(0, 4)}...${address.slice(-4)}`;
-            // usernameElement.textContent = shortAddress; // Если хотите показывать адрес кошелька вместо ника Telegram
 
-            // Здесь ВАШ_TONAPI_КЛЮЧ, если нужен. Оставьте пустым для TonApi Testnet или если Canvas предоставляет
-            // TONAPI_KEY_PLACEHOLDER - это заглушка, вам нужно получить ключ от TONAPI
+            // TODO: Получите ваш ключ TONAPI. Без него запросы могут не работать.
+            // https://tonapi.io/ (зарегистрируйтесь, создайте проект, получите ключ)
             const TONAPI_KEY = ''; 
             const headers = TONAPI_KEY ? { 'Authorization': `Bearer ${TONAPI_KEY}` } : {};
 
             try {
+                // Используем proxy для обхода CORS, если вы его настроили, или прямой запрос к TonAPI
+                // Если ваш бэкенд умеет проксировать TonAPI запросы, используйте его:
+                // const response = await fetch(`${backendBaseUrl}/api/ton-balance?address=${address}`);
+                // Иначе, прямой запрос к TonAPI (может требовать CORS на вашей стороне, если нет ключа)
                 const response = await fetch(`https://tonapi.io/v2/accounts/${address}`, { headers });
+                
                 if (!response.ok) {
                     throw new Error(`Ошибка TonAPI: ${response.statusText}`);
                 }
@@ -131,6 +135,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     window.VMPR.loadPage = async function(pagePath) {
         // 1. Очистка предыдущего скрипта
         if (window.VMPR.currentPageScript && typeof window.VMPR.currentPageScript.cleanup === 'function') {
+            console.log(`Очистка скрипта для ${pagePath}`);
             window.VMPR.currentPageScript.cleanup();
         }
         const oldScript = document.getElementById('dynamic-page-script');
@@ -139,10 +144,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         window.VMPR.currentPageScript = null; // Сбрасываем текущий скрипт
 
+        // Опционально: показать спиннер загрузки
+        mainContentContainer.innerHTML = '<div class="loading-spinner"></div>';
+
         try {
             // 2. Загрузка HTML
             const htmlResponse = await fetch(`${pagePath}.html`);
-            if (!htmlResponse.ok) throw new Error(`Failed to load ${pagePath}.html`);
+            if (!htmlResponse.ok) throw new Error(`Failed to load ${pagePath}.html: ${htmlResponse.statusText}`);
             const html = await htmlResponse.text();
             mainContentContainer.innerHTML = html;
 
@@ -163,6 +171,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         } catch (error) {
             console.error('Ошибка загрузки страницы:', error);
+            mainContentContainer.innerHTML = `<p style="color: var(--loss-color); text-align: center;">Ошибка загрузки контента: ${error.message}</p>`;
             tg.showAlert(`Ошибка загрузки страницы: ${error.message}`);
         }
     }
@@ -184,7 +193,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     // --- Обработка кнопок "Назад" (делегирование событий) ---
     // Это позволит кнопкам "Назад" работать на любой динамически загруженной странице
     mainContentContainer.addEventListener('click', (event) => {
-        if (event.target.classList.contains('back-btn')) {
+        // Проверяем, что цель клика или её родитель имеет класс 'back-btn'
+        const backBtn = event.target.closest('.back-btn');
+        if (backBtn) {
             // Активируем кнопку "Игры" в нижнем меню и загружаем страницу игр
             navButtons.forEach(btn => btn.classList.remove('active'));
             const gamesButton = document.querySelector('.bottom-nav .nav-btn[data-page="pages/games/index"]');
@@ -195,6 +206,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
+    // Устанавливаем активный класс для начальной страницы
+    const initialPageButton = document.querySelector('.bottom-nav .nav-btn[data-page="pages/games/index"]');
+    if (initialPageButton) {
+        initialPageButton.classList.add('active');
+    }
     // Загружаем начальную страницу (по умолчанию игры)
     window.VMPR.loadPage('pages/games/index');
 });
