@@ -1,19 +1,19 @@
-/* Переменные CSS для легкой смены цветов */
+/* Переменные CSS для темно-красной/бордовой цветовой схемы */
 :root {
-    --bg-color: #1a1a1a; /* Темный фон */
-    --primary-color: #ff9800; /* Основной оранжевый */
-    --secondary-color: #4a4a4a; /* Вторичный серый */
+    --bg-color: #1a0000; /* Очень темный, почти черный красный фон */
+    --primary-color: #E74C3C; /* Ярко-красный для акцентов (кнопок, выделений) */
+    --secondary-color: #4A0000; /* Темно-бордовый для секций/карточек */
     --text-color: #f0f0f0; /* Светлый текст */
-    --button-bg-color: #333; /* Фон кнопок */
+    --button-bg-color: var(--primary-color); /* Фон кнопок - ярко-красный */
     --button-text-color: #ffffff; /* Цвет текста кнопок */
-    --nav-bg-color: #222222; /* Фон навигационной панели */
-    --nav-icon-color: #cccccc; /* Цвет иконок в навигации */
-    --active-nav-color: var(--primary-color); /* Активный цвет навигации */
-    --input-bg-color: #333333; /* Фон полей ввода */
-    --input-border-color: #555555; /* Цвет границы полей ввода */
-    --win-color: #4CAF50; /* Зеленый для выигрыша */
-    --loss-color: #f44336; /* Красный для проигрыша */
-    --info-color: #2196F3; /* Синий для информации */
+    --nav-bg-color: #2b0000; /* Темно-бордовый для навигационной панели и хедера */
+    --nav-icon-color: #bbbbbb; /* Светло-серый для иконок в навигации */
+    --active-nav-color: var(--primary-color); /* Активный цвет навигации - ярко-красный */
+    --input-bg-color: #380000; /* Фон полей ввода */
+    --input-border-color: #610000; /* Цвет границы полей ввода */
+    --win-color: #4CAF50; /* Зеленый для выигрыша (можно оставить, так как это общепринятый цвет) */
+    --loss-color: #f44336; /* Красный для проигрыша (уже соответствует основной схеме) */
+    --info-color: #2196F3; /* Синий для информации (можно оставить) */
     --border-radius: 10px;
     --spacing-unit: 16px;
 }
@@ -25,11 +25,11 @@ body {
     padding: 0;
     background-color: var(--bg-color);
     color: var(--text-color);
-    overflow: hidden; /* Важно: предотвращает прокрутку body, прокрутку обрабатывает .main-content */
-    height: 100vh; /* Занимает всю высоту вьюпорта */
-    display: flex; /* Для корректного растягивания .app */
-    justify-content: center; /* Центрируем приложение по горизонтали */
-    align-items: center; /* Центрируем приложение по вертикали */
+    overflow: hidden;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 /* Основной контейнер приложения */
@@ -37,13 +37,13 @@ body {
     display: flex;
     flex-direction: column;
     width: 100%;
-    max-width: 480px; /* Максимальная ширина для мобильных устройств */
-    height: 100vh; /* Занимает всю высоту вьюпорта */
+    max-width: 480px;
+    height: 100vh;
     background-color: var(--bg-color);
-    box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.7); /* Более выраженная тень */
     border-radius: var(--border-radius);
-    overflow: hidden; /* Скрывает содержимое, которое выходит за границы */
-    box-sizing: border-box; /* Учитывает padding и border в ширине/высоте */
+    overflow: hidden;
+    box-sizing: border-box;
 }
 
 /* Хедер (шапка) приложения */
@@ -52,7 +52,7 @@ body {
     justify-content: space-between;
     align-items: center;
     padding: var(--spacing-unit);
-    background-color: var(--nav-bg-color); /* Используем цвет навигации для заголовка */
+    background-color: var(--nav-bg-color);
     border-bottom: 1px solid var(--secondary-color);
     color: var(--text-color);
     font-size: 1.1em;
@@ -63,17 +63,15 @@ body {
     align-items: center;
 }
 
-/* *** ИЗМЕНЕНИЯ ДЛЯ АВАТАРКИ: УБЕДИТЕСЬ, ЧТО ЭТОТ БЛОК ТУТ *** */
 .user-info img {
-    width: 40px; /* Фиксированная ширина */
-    height: 40px; /* Фиксированная высота */
-    border-radius: 50%; /* Делает её круглой */
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
     margin-right: 10px;
-    border: 2px solid var(--primary-color);
-    object-fit: cover; /* ОЧЕНЬ ВАЖНО: Масштабирует изображение, чтобы оно заполнило контейнер без искажений */
-    flex-shrink: 0; /* Предотвращает сжатие изображения, если места мало */
+    border: 2px solid var(--primary-color); /* Бордовая рамка */
+    object-fit: cover;
+    flex-shrink: 0;
 }
-/* *************************************************************** */
 
 .balance {
     font-weight: bold;
@@ -82,29 +80,16 @@ body {
 
 /* Основной контент (динамически загружаемые страницы) */
 .main-content {
-    flex-grow: 1; /* Позволяет основному контенту занимать все доступное пространство */
-    overflow-y: auto; /* Добавляет прокрутку, если контент превышает высоту */
+    flex-grow: 1;
+    overflow-y: auto;
     padding: var(--spacing-unit);
-    padding-bottom: calc(var(--spacing-unit) + 60px); /* Отступ снизу для навигационной панели */
+    padding-bottom: calc(var(--spacing-unit) + 60px);
     box-sizing: border-box;
-    display: flex; /* Для центрирования спиннера и контента */
-    flex-direction: column; /* Для размещения элементов друг под другом */
-    align-items: center; /* Центрируем по горизонтали */
-    text-align: center; /* Центрируем текст внутри */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
 }
-
-/* Общее правило для изображений внутри main-content, если они нужны */
-/* Если вам НУЖНО, чтобы изображения внутри main-content растягивались,
-   то используйте более специфичный селектор, чтобы не затрагивать аватарку.
-   Если такого правила нет, то это хорошо. */
-/* Пример:
-.main-content img {
-    max-width: 100%;
-    height: auto;
-    display: block;
-    margin: 0 auto;
-}
-*/
 
 /* Нижняя навигационная панель */
 .bottom-nav {
@@ -114,14 +99,14 @@ body {
     background-color: var(--nav-bg-color);
     border-top: 1px solid var(--secondary-color);
     padding: 10px 0;
-    position: sticky; /* Sticky, чтобы прилипать к низу родителя (.app) */
+    position: sticky;
     bottom: 0;
     width: 100%;
     box-sizing: border-box;
 }
 
 .nav-btn {
-    flex: 1; /* Распределяет кнопки равномерно */
+    flex: 1;
     background: none;
     border: none;
     color: var(--nav-icon-color);
@@ -131,31 +116,33 @@ body {
     font-size: 0.8em;
     cursor: pointer;
     padding: 5px 0;
-    transition: color 0.2s ease-in-out;
+    transition: color 0.2s ease-in-out, transform 0.2s ease-in-out; /* Добавил transform */
 }
 
 .nav-btn img {
     width: 24px;
     height: 24px;
     margin-bottom: 5px;
-    filter: invert(70%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(100%) contrast(100%); /* Делает иконки серыми */
+    filter: invert(90%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(100%) contrast(100%); /* Делает иконки светло-серыми */
     transition: filter 0.2s ease-in-out;
 }
 
 .nav-btn.active {
     color: var(--active-nav-color);
+    transform: translateY(-2px); /* Небольшой подъем для активной кнопки */
 }
 
 .nav-btn.active img {
-    filter: invert(50%) sepia(90%) saturate(2000%) hue-rotate(360deg) brightness(100%) contrast(100%); /* Делает иконки оранжевыми */
+    filter: invert(30%) sepia(90%) saturate(2000%) hue-rotate(330deg) brightness(100%) contrast(100%); /* Делает иконки ярко-красными */
 }
 
 .nav-btn:hover:not(.active) {
     color: var(--primary-color);
+    transform: translateY(-2px);
 }
 
 .nav-btn:hover:not(.active) img {
-    filter: invert(50%) sepia(90%) saturate(2000%) hue-rotate(360deg) brightness(100%) contrast(100%);
+    filter: invert(30%) sepia(90%) saturate(2000%) hue-rotate(330deg) brightness(100%) contrast(100%);
 }
 
 /* --- Стили для общих элементов внутри динамических страниц --- */
@@ -165,17 +152,18 @@ body {
     color: var(--primary-color);
     margin-bottom: var(--spacing-unit);
     text-align: center;
-    width: 100%; /* Чтобы центрировать его в flex-контейнере .main-content */
+    width: 100%;
 }
 
 .section {
-    background-color: var(--secondary-color);
+    background-color: var(--secondary-color); /* Темно-бордовый фон для секций */
     border-radius: var(--border-radius);
     padding: var(--spacing-unit);
     margin-bottom: var(--spacing-unit);
     width: 100%;
     box-sizing: border-box;
-    text-align: left; /* Переопределяем text-align для содержимого секций */
+    text-align: left;
+    border: 1px solid #610000; /* Добавлен бордер для секций */
 }
 
 .section h3 {
@@ -193,17 +181,25 @@ body {
     padding: 12px 20px;
     font-size: 1em;
     cursor: pointer;
-    transition: background-color 0.3s ease;
+    transition: background-color 0.3s ease, transform 0.1s ease-out; /* Добавил transform */
     width: 100%;
     box-sizing: border-box;
     text-align: center;
-    display: block; /* Убедимся, что кнопка занимает всю ширину */
-    margin-top: var(--spacing-unit); /* Отступ сверху для кнопок */
+    display: block;
+    margin-top: var(--spacing-unit);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4); /* Тень для кнопок */
 }
 
 .button:hover {
-    background-color: #e68a00; /* Более темный оранжевый при наведении */
+    background-color: #c0392b; /* Более темный красный при наведении */
+    transform: translateY(-1px); /* Небольшой подъем при наведении */
 }
+
+.button:active {
+    transform: translateY(1px); /* Небольшое нажатие при клике */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+}
+
 
 .input-group {
     margin-bottom: var(--spacing-unit);
@@ -255,15 +251,15 @@ body {
     display: flex;
     align-items: center;
     margin-bottom: var(--spacing-unit);
-    padding: 0; /* Удаляем внутренние отступы, чтобы иконка была ближе к тексту */
-    width: fit-content; /* Чтобы кнопка не занимала всю ширину */
+    padding: 0;
+    width: fit-content;
 }
 
 .back-btn img {
     width: 20px;
     height: 20px;
     margin-right: 5px;
-    filter: invert(50%) sepia(90%) saturate(2000%) hue-rotate(360deg) brightness(100%) contrast(100%); /* Оранжевый цвет */
+    filter: invert(30%) sepia(90%) saturate(2000%) hue-rotate(330deg) brightness(100%) contrast(100%); /* Красный цвет */
 }
 
 .back-btn:hover {
@@ -275,9 +271,10 @@ body {
     margin-bottom: 8px;
     padding: 8px;
     border-radius: 5px;
-    background-color: #333;
+    background-color: #380000; /* Чуть светлее бордовый для записей истории */
     font-size: 0.9em;
-    word-wrap: break-word; /* Перенос длинных слов */
+    word-wrap: break-word;
+    border: 1px solid #610000;
 }
 
 .history-entry.info {
@@ -302,12 +299,7 @@ body {
     margin-top: 4px;
 }
 
-/* Дополнительные стили для конкретных страниц (примеры, если они потребуются) */
-/* Если вы добавите стили, специфичные для страницы, лучше создать для них отдельные CSS-файлы
-   и загружать их динамически вместе с HTML и JS страницы, или использовать классы
-   на body или .main-content для scoped-стилей. */
-
-/* Стили для страницы "Игры" (пример) */
+/* Стили для страницы "Игры" */
 #game-controls {
     display: flex;
     flex-direction: column;
