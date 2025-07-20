@@ -10,7 +10,8 @@ window.VMPR.updateBalanceUI = null;
 window.VMPR.addHistoryEntry = null;
 window.VMPR.currentPageScript = null;
 
-// Функция для динамической загрузки скриптов
+// Функция loadScript больше не нужна для TON Connect и Telegram SDK, так как они теперь статически в index.html
+// Ее можно удалить или оставить для динамической загрузки других страниц, как она и используется ниже.
 function loadScript(src, id = null) {
     return new Promise((resolve, reject) => {
         const script = document.createElement('script');
@@ -26,7 +27,7 @@ function loadScript(src, id = null) {
             console.error(`Error loading script: ${src}`, e);
             reject(new Error(`Failed to load script: ${src}`));
         };
-        document.head.appendChild(script); // Важно: добавляем в head, чтобы он был доступен
+        document.body.appendChild(script); // Добавляем в body, так как это динамический контент
     });
 }
 
@@ -37,46 +38,42 @@ document.addEventListener('DOMContentLoaded', async () => {
     const balanceElement = document.getElementById('balance-amount');
     const navButtons = document.querySelectorAll('.bottom-nav .nav-btn');
 
-    try {
-        // --- Динамическая загрузка Telegram Web App SDK ---
-        console.log('Loading Telegram Web App SDK...');
-        await loadScript('https://telegram.org/js/telegram-web-app.js', 'telegram-sdk');
-        if (!window.Telegram || !window.Telegram.WebApp) {
-            throw new Error('Telegram Web App SDK not found after loading.');
-        }
+    // --- Инициализация Telegram Web App SDK (теперь он должен быть доступен глобально) ---
+    if (window.Telegram && window.Telegram.WebApp) {
         window.VMPR.tg = window.Telegram.WebApp;
         window.VMPR.tg.expand();
         window.VMPR.tg.ready();
         window.VMPR.tg.MainButton.hide();
-        console.log('Telegram Web App SDK loaded and initialized.');
-
-        // --- Динамическая загрузка TON Connect SDK ---
-        console.log('Loading TON Connect SDK...');
-        // Попробуем CDNJS еще раз, но теперь с контролем загрузки
-        await loadScript('./lib/ton-connect-sdk.min.js', 'tonconnect-sdk');
-        if (!window.TON_CONNECT_SDK) {
-            throw new Error('TON Connect SDK not found after loading.');
-        }
-        console.log('TON Connect SDK loaded.');
-
-    } catch (error) {
-        console.error('CRITICAL ERROR: Failed to load essential SDKs.', error);
-        mainContentContainer.innerHTML = `<p style="color: var(--loss-color); text-align: center;">Критическая ошибка загрузки: ${error.message}. Проверьте подключение к интернету.</p>`;
-        // Можно показать более наглядное сообщение пользователю через Telegram Web App, если SDK загрузился до этого
-        if (window.VMPR.tg) {
-             window.VMPR.tg.showAlert(`Критическая ошибка: ${error.message}`);
-        }
-        return; // Останавливаем выполнение, если базовые SDK не загрузились
+        console.log('Telegram Web App SDK initialized.');
+    } else {
+        console.error('Telegram Web App SDK not found or failed to initialize.');
+        mainContentContainer.innerHTML = `<p style="color: var(--loss-color); text-align: center;">Критическая ошибка: Не удалось инициализировать Telegram Web App SDK.</p>`;
+        // Можно показать более наглядное сообщение пользователю, если это возможно
+        return; // Останавливаем выполнение, если Telegram SDK критичен и не загрузился
     }
 
-    // --- Остальной код app.js (который у вас уже был) ---
-    // Начинаем использовать window.VMPR.tg и window.TON_CONNECT_SDK только после успешной загрузки выше
+    // --- Инициализация TON Connect SDK (теперь он должен быть доступен глобально) ---
+    if (window.TON_CONNECT_SDK) {
+        window.VMPR.tonConnectUI = new TON_CONNECT_SDK.TonConnectUI({
+            manifestUrl: 'https://vampir2517.github.io/VMPRstake/tonconnect-manifest.json',
+            buttonRootId: 'ton-connect-btn-container' // ID контейнера, куда TON Connect SDK вставит свою кнопку
+        });
+        console.log('TON Connect SDK initialized.');
+    } else {
+        console.error('TON Connect SDK not found or failed to initialize.');
+        mainContentContainer.innerHTML = `<p style="color: var(--loss-color); text-align: center;">Критическая ошибка: Не удалось инициализировать TON Connect SDK.</p>`;
+        window.VMPR.tg.showAlert('Критическая ошибка: Не удалось инициализировать TON Connect SDK.');
+        return; // Останавливаем выполнение, если TON Connect SDK критичен и не загрузился
+    }
+    
+    // --- Остальной код app.js (продолжение после успешной инициализации SDK) ---
 
     // --- Получение данных пользователя Telegram ---
     if (window.VMPR.tg.initDataUnsafe && window.VMPR.tg.initDataUnsafe.user) {
         const userId = window.VMPR.tg.initDataUnsafe.user.id;
         try {
-            const backendBaseUrl = "https://telegram-webapp-backend.vercel.app";
+            // URL вашего бэкенда на Vercel
+            const backendBaseUrl = "https://telegram-webapp-backend.vercel.app"; 
             const response = await fetch(`${backendBaseUrl}/api/user-data?user_id=${userId}`);
 
             if (!response.ok) {
@@ -110,7 +107,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     window.VMPR.addHistoryEntry = function(text, type = 'info') {
         let historyData = JSON.parse(localStorage.getItem('gameHistory')) || [];
         historyData.unshift({ text, type, timestamp: new Date().toISOString() });
-        historyData = historyData.slice(0, 10);
+        historyData = historyData.slice(0, 10); // Ограничиваем историю 10 записями
         localStorage.setItem('gameHistory', JSON.stringify(historyData));
 
         if (window.VMPR.currentPageScript && typeof window.VMPR.currentPageScript.updateHistoryDisplay === 'function') {
@@ -118,22 +115,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     };
 
-    // --- Инициализация TON Connect SDK ---
-    window.VMPR.tonConnectUI = new TON_CONNECT_SDK.TonConnectUI({
-        manifestUrl: 'https://vampir2517.github.io/VMPRstake/tonconnect-manifest.json',
-        buttonRootId: 'ton-connect-btn-container' // Это ID для кнопки, которая будет создана TonConnect SDK
-    });
-
     // --- Обновление UI при подключении/отключении кошелька TON ---
     window.VMPR.tonConnectUI.onStatusChange(async (walletInfo) => {
         if (walletInfo) {
             const address = walletInfo.account.address;
             const shortAddress = `${address.slice(0, 4)}...${address.slice(-4)}`;
 
-            const TONAPI_KEY = ''; // Вставьте ваш TONAPI_KEY здесь
+            const TONAPI_KEY = ''; // Вставьте ваш TONAPI_KEY здесь, если используете TONAPI
             const headers = TONAPI_KEY ? { 'Authorization': `Bearer ${TONAPI_KEY}` } : {};
 
             try {
+                // Используем TonAPI для получения баланса по адресу кошелька
                 const response = await fetch(`https://tonapi.io/v2/accounts/${address}`, { headers });
                 
                 if (!response.ok) {
@@ -141,18 +133,19 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
                 const data = await response.json();
                 if (data && data.balance) {
-                    const balanceNano = BigInt(data.balance);
-                    window.VMPR.userBalance = Number(balanceNano) / 1_000_000_000;
+                    const balanceNano = BigInt(data.balance); // Баланс в нанотонах
+                    window.VMPR.userBalance = Number(balanceNano) / 1_000_000_000; // Переводим в TON
                     window.VMPR.updateBalanceUI();
                     window.VMPR.addHistoryEntry(`Кошелек подключен: ${shortAddress}`, 'info');
                 }
             } catch (error) {
                 console.error('Ошибка при получении баланса:', error);
                 window.VMPR.tg.showAlert(`Ошибка получения баланса: ${error.message}`);
-                window.VMPR.userBalance = 0.00;
+                window.VMPR.userBalance = 0.00; // Сбрасываем баланс при ошибке
                 window.VMPR.updateBalanceUI();
             }
         } else {
+            // Кошелек отключен
             if (window.VMPR.tg.initDataUnsafe && window.VMPR.tg.initDataUnsafe.user) {
                 const user = window.VMPR.tg.initDataUnsafe.user;
                 usernameElement.textContent = user.username ? `@${user.username}` : `${user.first_name || ''} ${user.last_name || ''}`.trim() || 'Пользователь Telegram';
@@ -160,16 +153,18 @@ document.addEventListener('DOMContentLoaded', async () => {
                 usernameElement.textContent = 'Гость';
             }
             userAvatarElement.src = 'assets/user.png';
-            window.VMPR.userBalance = 0.00;
+            window.VMPR.userBalance = 0.00; // Сбрасываем баланс
             window.VMPR.updateBalanceUI();
             window.VMPR.addHistoryEntry('Кошелек отключен', 'info');
         }
     });
 
+    // Обновляем UI баланса при загрузке страницы
     window.VMPR.updateBalanceUI();
 
-    // --- Динамическая загрузка контента страниц ---
+    // --- Динамическая загрузка контента страниц (все еще нужна для pages/*.html и pages/*.js) ---
     window.VMPR.loadPage = async function(pagePath) {
+        // Очистка предыдущего скрипта страницы, если он был
         if (window.VMPR.currentPageScript && typeof window.VMPR.currentPageScript.cleanup === 'function') {
             console.log(`Очистка скрипта для ${pagePath}`);
             window.VMPR.currentPageScript.cleanup();
@@ -180,24 +175,28 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         window.VMPR.currentPageScript = null;
 
+        // Показываем спиннер загрузки
         mainContentContainer.innerHTML = '<div class="loading-spinner"></div>';
 
         try {
+            // Загружаем HTML-контент страницы
             const htmlResponse = await fetch(`${pagePath}.html`);
             if (!htmlResponse.ok) throw new Error(`Failed to load ${pagePath}.html: ${htmlResponse.statusText}`);
             const html = await htmlResponse.text();
-            mainContentContainer.innerHTML = html;
+            mainContentContainer.innerHTML = html; // Вставляем HTML в контейнер
 
+            // Загружаем соответствующий JavaScript для страницы
             const script = document.createElement('script');
             script.id = 'dynamic-page-script';
             script.src = `${pagePath}.js`;
             script.onload = () => {
+                // Если скрипт успешно загружен и имеет функцию init, вызываем ее
                 if (window.VMPR.currentPageScript && typeof window.VMPR.currentPageScript.init === 'function') {
                     window.VMPR.currentPageScript.init();
                 }
             };
             script.onerror = (e) => console.error(`Failed to load script ${pagePath}.js`, e);
-            document.body.appendChild(script);
+            document.body.appendChild(script); // Добавляем скрипт в конец body
 
             console.log(`Страница ${pagePath} успешно загружена.`);
 
@@ -213,27 +212,30 @@ document.addEventListener('DOMContentLoaded', async () => {
         button.addEventListener('click', () => {
             const page = button.getAttribute('data-page');
             if (page) {
+                // Удаляем класс 'active' со всех кнопок
                 navButtons.forEach(btn => btn.classList.remove('active'));
+                // Добавляем класс 'active' к нажатой кнопке
                 button.classList.add('active');
-                window.VMPR.loadPage(page);
+                window.VMPR.loadPage(page); // Загружаем новую страницу
             }
         });
     });
 
-    // --- Обработка кнопок "Назад" ---
+    // --- Обработка кнопок "Назад" (для страниц с кнопкой "Назад") ---
     mainContentContainer.addEventListener('click', (event) => {
         const backBtn = event.target.closest('.back-btn');
         if (backBtn) {
             navButtons.forEach(btn => btn.classList.remove('active'));
+            // Активируем кнопку "Игры" при возврате
             const gamesButton = document.querySelector('.bottom-nav .nav-btn[data-page="pages/games/index"]');
             if (gamesButton) {
                 gamesButton.classList.add('active');
             }
-            window.VMPR.loadPage('pages/games/index');
+            window.VMPR.loadPage('pages/games/index'); // Возвращаемся на страницу игр
         }
     });
 
-    // Загружаем начальную страницу (по умолчанию игры)
+    // Загружаем начальную страницу (по умолчанию игры) при первом запуске приложения
     const initialPageButton = document.querySelector('.bottom-nav .nav-btn[data-page="pages/games/index"]');
     if (initialPageButton) {
         initialPageButton.classList.add('active');
