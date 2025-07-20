@@ -40,7 +40,7 @@ body {
     max-width: 480px;
     height: 100vh;
     background-color: var(--bg-color);
-    box-shadow: 0 0 15px rgba(0, 0, 0, 0.7); /* Более выраженная тень */
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.7);
     border-radius: var(--border-radius);
     overflow: hidden;
     box-sizing: border-box;
@@ -68,7 +68,7 @@ body {
     height: 40px;
     border-radius: 50%;
     margin-right: 10px;
-    border: 2px solid var(--primary-color); /* Бордовая рамка */
+    border: 2px solid var(--primary-color);
     object-fit: cover;
     flex-shrink: 0;
 }
@@ -116,24 +116,24 @@ body {
     font-size: 0.8em;
     cursor: pointer;
     padding: 5px 0;
-    transition: color 0.2s ease-in-out, transform 0.2s ease-in-out; /* Добавил transform */
+    transition: color 0.2s ease-in-out, transform 0.2s ease-in-out;
 }
 
 .nav-btn img {
     width: 24px;
     height: 24px;
     margin-bottom: 5px;
-    filter: invert(90%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(100%) contrast(100%); /* Делает иконки светло-серыми */
+    filter: invert(90%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(100%) contrast(100%);
     transition: filter 0.2s ease-in-out;
 }
 
 .nav-btn.active {
     color: var(--active-nav-color);
-    transform: translateY(-2px); /* Небольшой подъем для активной кнопки */
+    transform: translateY(-2px);
 }
 
 .nav-btn.active img {
-    filter: invert(30%) sepia(90%) saturate(2000%) hue-rotate(330deg) brightness(100%) contrast(100%); /* Делает иконки ярко-красными */
+    filter: invert(30%) sepia(90%) saturate(2000%) hue-rotate(330deg) brightness(100%) contrast(100%);
 }
 
 .nav-btn:hover:not(.active) {
@@ -156,14 +156,14 @@ body {
 }
 
 .section {
-    background-color: var(--secondary-color); /* Темно-бордовый фон для секций */
+    background-color: var(--secondary-color);
     border-radius: var(--border-radius);
     padding: var(--spacing-unit);
     margin-bottom: var(--spacing-unit);
     width: 100%;
     box-sizing: border-box;
     text-align: left;
-    border: 1px solid #610000; /* Добавлен бордер для секций */
+    border: 1px solid #610000;
 }
 
 .section h3 {
@@ -173,6 +173,7 @@ body {
     font-size: 1.2em;
 }
 
+/* ОСНОВНАЯ КНОПКА (яркая, красная) */
 .button {
     background-color: var(--primary-color);
     color: var(--button-text-color);
@@ -181,23 +182,75 @@ body {
     padding: 12px 20px;
     font-size: 1em;
     cursor: pointer;
-    transition: background-color 0.3s ease, transform 0.1s ease-out; /* Добавил transform */
+    transition: background-color 0.3s ease, transform 0.1s ease-out;
     width: 100%;
     box-sizing: border-box;
     text-align: center;
     display: block;
     margin-top: var(--spacing-unit);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4); /* Тень для кнопок */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
 }
 
 .button:hover {
     background-color: #c0392b; /* Более темный красный при наведении */
-    transform: translateY(-1px); /* Небольшой подъем при наведении */
+    transform: translateY(-1px);
 }
 
 .button:active {
-    transform: translateY(1px); /* Небольшое нажатие при клике */
+    transform: translateY(1px);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+/* СТИЛИ ДЛЯ ВТОРИЧНЫХ КНОПОК ИЛИ КНОПОК ИГРЫ (если они будут) */
+.game-button {
+    background-color: var(--secondary-color); /* Темно-бордовый фон */
+    color: var(--text-color);
+    border: 1px solid var(--input-border-color); /* Бордер для выразительности */
+    border-radius: var(--border-radius);
+    padding: 12px 20px;
+    font-size: 1em;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.1s ease-out;
+    width: 100%; /* Или другая ширина, если они в ряд */
+    box-sizing: border-box;
+    text-align: center;
+    display: flex; /* Для выравнивания иконки и текста */
+    justify-content: center;
+    align-items: center;
+    gap: 10px; /* Отступ между иконкой и текстом */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.game-button img {
+    width: 20px;
+    height: 20px;
+    filter: invert(90%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(100%) contrast(100%); /* Белые иконки */
+}
+
+.game-button:hover {
+    background-color: #610000; /* Более темный бордовый при наведении */
+    transform: translateY(-1px);
+}
+
+.game-button:active {
+    transform: translateY(1px);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* Кнопки "Камень, Ножницы, Бумага" и "Кости" */
+.game-selection-buttons {
+    display: flex;
+    justify-content: center;
+    gap: var(--spacing-unit);
+    width: 100%;
+    flex-wrap: wrap; /* Позволяет кнопкам переноситься на новую строку на маленьких экранах */
+    margin-top: var(--spacing-unit);
+    margin-bottom: var(--spacing-unit);
+}
+
+.game-selection-buttons .game-button {
+    flex-basis: calc(50% - var(--spacing-unit) / 2); /* Две кнопки в ряд с отступом */
+    max-width: 200px; /* Ограничиваем ширину для больших экранов */
 }
 
 
@@ -259,7 +312,7 @@ body {
     width: 20px;
     height: 20px;
     margin-right: 5px;
-    filter: invert(30%) sepia(90%) saturate(2000%) hue-rotate(330deg) brightness(100%) contrast(100%); /* Красный цвет */
+    filter: invert(30%) sepia(90%) saturate(2000%) hue-rotate(330deg) brightness(100%) contrast(100%);
 }
 
 .back-btn:hover {
@@ -271,7 +324,7 @@ body {
     margin-bottom: 8px;
     padding: 8px;
     border-radius: 5px;
-    background-color: #380000; /* Чуть светлее бордовый для записей истории */
+    background-color: #380000;
     font-size: 0.9em;
     word-wrap: break-word;
     border: 1px solid #610000;

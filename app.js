@@ -4,7 +4,7 @@
 window.VMPR = window.VMPR || {};
 window.VMPR.tg = null;
 window.VMPR.tonConnectUI = null; // Он будет null, так как SDK не загружается
-window.VMPR.userBalance = 0.00;
+window.VMPR.userBalance = 100.00; // Устанавливаем начальный баланс для теста
 window.VMPR.stakeAmount = 1.00; // Фиксированная ставка для демонстрации
 window.VMPR.updateBalanceUI = null;
 window.VMPR.addHistoryEntry = null;
@@ -45,15 +45,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.log('Telegram Web App SDK initialized.');
     } else {
         console.error('Telegram Web App SDK not found or failed to initialize.');
-        // Изменено сообщение об ошибке, чтобы быть более общим
         mainContentContainer.innerHTML = `<p style="color: var(--loss-color); text-align: center;">Критическая ошибка: Не удалось инициализировать Telegram Web App SDK.</p>`;
         return; 
     }
 
     // --- Инициализация TON Connect SDK (ПОЛНОСТЬЮ ОТКЛЮЧЕНО) ---
     // Здесь НЕТ вызова new TON_CONNECT_SDK.TonConnectUI.
-    // Если вам понадобится кнопка подключения кошелька, вы можете добавить ее вручную
-    // и временно заглушить ее функциональность, или создать ее DOM-элемент без привязки к SDK.
     console.warn('TON Connect SDK временно отключен, все связанные вызовы удалены/закомментированы.');
 
     // --- Получение данных пользователя Telegram ---
@@ -77,18 +74,39 @@ document.addEventListener('DOMContentLoaded', async () => {
         } catch (error) {
             console.error('Ошибка при получении данных пользователя с бэкенда:', error);
             usernameElement.textContent = 'Гость (ошибка загрузки данных)';
-            userAvatarElement.src = 'assets/user.png'; // Используем заглушку при ошибке
+            userAvatarElement.src = 'assets/user.png';
             window.VMPR.tg.showAlert(`Ошибка загрузки данных пользователя: ${error.message}`);
         }
     } else {
         usernameElement.textContent = 'Гость (нет данных WebApp)';
-        userAvatarElement.src = 'assets/user.png'; // Используем заглушку, если нет данных WebApp
+        userAvatarElement.src = 'assets/user.png';
     }
 
-    // --- Функция для обновления баланса в UI ---
+    // --- Функции для работы с балансом ---
     window.VMPR.updateBalanceUI = function() {
         balanceElement.textContent = window.VMPR.userBalance.toFixed(2);
     };
+
+    window.VMPR.deductBalance = function(amount) {
+        if (window.VMPR.userBalance >= amount) {
+            window.VMPR.userBalance -= amount;
+            window.VMPR.updateBalanceUI();
+            window.VMPR.addHistoryEntry(`Снято: ${amount.toFixed(2)} TON`, 'loss');
+            return true;
+        } else {
+            window.VMPR.tg.showAlert('Недостаточно средств на балансе!');
+            return false;
+        }
+    };
+
+    window.VMPR.addBalance = function(amount) {
+        window.VMPR.userBalance += amount;
+        window.VMPR.updateBalanceUI();
+        window.VMPR.addHistoryEntry(`Начислено: ${amount.toFixed(2)} TON`, 'win');
+    };
+
+    // Обновляем UI баланса при загрузке страницы
+    window.VMPR.updateBalanceUI();
 
     // --- Функция для добавления записи в историю (сохранение в localStorage) ---
     window.VMPR.addHistoryEntry = function(text, type = 'info') {
@@ -101,9 +119,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             window.VMPR.currentPageScript.updateHistoryDisplay();
         }
     };
-
-    // Обновляем UI баланса при загрузке страницы (пока всегда 0.00 без TON Connect)
-    window.VMPR.updateBalanceUI();
 
     // --- Динамическая загрузка контента страниц ---
     window.VMPR.loadPage = async function(pagePath) {
