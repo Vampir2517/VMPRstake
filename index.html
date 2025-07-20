@@ -5,14 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VMPR Stake</title>
     <link rel="stylesheet" href="style.css">
-   <script src="https://cdnjs.cloudflare.com/ajax/libs/ton-connect-sdk/2.3.0/ton-connect-sdk.min.js"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
+    <script>eruda.init();</script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ton-connect-sdk/2.3.0/ton-connect-sdk.min.js"></script>
+    
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
 </head>
 <body>
     <div class="app">
         <header class="header">
             <div class="user-info">
-                <img id="user-avatar" src="assets/user.png" alt="User Avatar" class="avatar">
+                <img id="user-avatar" src="assets/user.png" alt="User Avatar">
                 <span id="username">Загрузка...</span>
             </div>
             <div class="balance">
@@ -21,7 +27,8 @@
         </header>
 
         <main id="main-content-container" class="main-content">
-            <div class="loading-spinner"></div> </main>
+            <div class="loading-spinner"></div>
+        </main>
 
         <nav class="bottom-nav">
             <button class="nav-btn" data-page="pages/games/index">
@@ -38,9 +45,6 @@
             </button>
         </nav>
     </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
-    <script>eruda.init();</script>
 
     <script src="app.js"></script>
 </body>
