@@ -3,7 +3,7 @@
 // Глобальный объект для обмена данными и функциями между модулями
 window.VMPR = window.VMPR || {};
 window.VMPR.tg = null;
-window.VMPR.tonConnectUI = null;
+window.VMPR.tonConnectUI = null; // Оставляем, но он будет null
 window.VMPR.userBalance = 0.00;
 window.VMPR.stakeAmount = 1.00; // Фиксированная ставка для демонстрации
 window.VMPR.updateBalanceUI = null;
@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const balanceElement = document.getElementById('balance-amount');
     const navButtons = document.querySelectorAll('.bottom-nav .nav-btn');
 
-    // --- Инициализация Telegram Web App SDK (теперь он должен быть доступен глобально) ---
+    // --- Инициализация Telegram Web App SDK ---
     if (window.Telegram && window.Telegram.WebApp) {
         window.VMPR.tg = window.Telegram.WebApp;
         window.VMPR.tg.expand();
@@ -48,25 +48,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     } else {
         console.error('Telegram Web App SDK not found or failed to initialize.');
         mainContentContainer.innerHTML = `<p style="color: var(--loss-color); text-align: center;">Критическая ошибка: Не удалось инициализировать Telegram Web App SDK.</p>`;
-        // Можно показать более наглядное сообщение пользователю, если это возможно
-        return; // Останавливаем выполнение, если Telegram SDK критичен и не загрузился
+        return; 
     }
 
-    // --- Инициализация TON Connect SDK (теперь он должен быть доступен глобально) ---
-    if (window.TON_CONNECT_SDK) {
-        window.VMPR.tonConnectUI = new TON_CONNECT_SDK.TonConnectUI({
-            manifestUrl: 'https://vampir2517.github.io/VMPRstake/tonconnect-manifest.json',
-            buttonRootId: 'ton-connect-btn-container' // ID контейнера, куда TON Connect SDK вставит свою кнопку
-        });
-        console.log('TON Connect SDK initialized.');
-    } else {
-        console.error('TON Connect SDK not found or failed to initialize.');
-        mainContentContainer.innerHTML = `<p style="color: var(--loss-color); text-align: center;">Критическая ошибка: Не удалось инициализировать TON Connect SDK.</p>`;
-        window.VMPR.tg.showAlert('Критическая ошибка: Не удалось инициализировать TON Connect SDK.');
-        return; // Останавливаем выполнение, если TON Connect SDK критичен и не загрузился
-    }
-    
-    // --- Остальной код app.js (продолжение после успешной инициализации SDK) ---
+    // --- Инициализация TON Connect SDK (ОТКЛЮЧЕНО) ---
+    // window.VMPR.tonConnectUI = new TON_CONNECT_SDK.TonConnectUI({ ... });
+    // Поскольку TON Connect SDK временно отключен, window.VMPR.tonConnectUI останется null.
+    // Если вам позже понадобится кнопка подключения кошелька, вы можете добавить ее вручную
+    // и временно заглушить ее функциональность.
+    console.warn('TON Connect SDK временно отключен.');
+    // Возможно, стоит добавить кнопку-заглушку, чтобы пользователи не видели, что чего-то не хватает
+    // Если она не нужна прямо сейчас, можно пропустить.
 
     // --- Получение данных пользователя Telegram ---
     if (window.VMPR.tg.initDataUnsafe && window.VMPR.tg.initDataUnsafe.user) {
@@ -116,53 +108,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
 
     // --- Обновление UI при подключении/отключении кошелька TON ---
-    window.VMPR.tonConnectUI.onStatusChange(async (walletInfo) => {
-        if (walletInfo) {
-            const address = walletInfo.account.address;
-            const shortAddress = `${address.slice(0, 4)}...${address.slice(-4)}`;
+    // ЭТОТ БЛОК УДАЛЕН ИЛИ ЗАКОММЕНТИРОВАН, так как TON Connect отключен.
+    // window.VMPR.tonConnectUI.onStatusChange(async (walletInfo) => { ... });
 
-            const TONAPI_KEY = ''; // Вставьте ваш TONAPI_KEY здесь, если используете TONAPI
-            const headers = TONAPI_KEY ? { 'Authorization': `Bearer ${TONAPI_KEY}` } : {};
-
-            try {
-                // Используем TonAPI для получения баланса по адресу кошелька
-                const response = await fetch(`https://tonapi.io/v2/accounts/${address}`, { headers });
-                
-                if (!response.ok) {
-                    throw new Error(`Ошибка TonAPI: ${response.statusText}`);
-                }
-                const data = await response.json();
-                if (data && data.balance) {
-                    const balanceNano = BigInt(data.balance); // Баланс в нанотонах
-                    window.VMPR.userBalance = Number(balanceNano) / 1_000_000_000; // Переводим в TON
-                    window.VMPR.updateBalanceUI();
-                    window.VMPR.addHistoryEntry(`Кошелек подключен: ${shortAddress}`, 'info');
-                }
-            } catch (error) {
-                console.error('Ошибка при получении баланса:', error);
-                window.VMPR.tg.showAlert(`Ошибка получения баланса: ${error.message}`);
-                window.VMPR.userBalance = 0.00; // Сбрасываем баланс при ошибке
-                window.VMPR.updateBalanceUI();
-            }
-        } else {
-            // Кошелек отключен
-            if (window.VMPR.tg.initDataUnsafe && window.VMPR.tg.initDataUnsafe.user) {
-                const user = window.VMPR.tg.initDataUnsafe.user;
-                usernameElement.textContent = user.username ? `@${user.username}` : `${user.first_name || ''} ${user.last_name || ''}`.trim() || 'Пользователь Telegram';
-            } else {
-                usernameElement.textContent = 'Гость';
-            }
-            userAvatarElement.src = 'assets/user.png';
-            window.VMPR.userBalance = 0.00; // Сбрасываем баланс
-            window.VMPR.updateBalanceUI();
-            window.VMPR.addHistoryEntry('Кошелек отключен', 'info');
-        }
-    });
-
-    // Обновляем UI баланса при загрузке страницы
+    // Обновляем UI баланса при загрузке страницы (теперь он всегда будет 0.00, пока не подключим TON Connect)
     window.VMPR.updateBalanceUI();
 
-    // --- Динамическая загрузка контента страниц (все еще нужна для pages/*.html и pages/*.js) ---
+    // --- Динамическая загрузка контента страниц ---
     window.VMPR.loadPage = async function(pagePath) {
         // Очистка предыдущего скрипта страницы, если он был
         if (window.VMPR.currentPageScript && typeof window.VMPR.currentPageScript.cleanup === 'function') {
