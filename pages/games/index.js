@@ -18,13 +18,11 @@ window.VMPR.currentPageScript = {
 
     cleanup: function() {
         console.log('Games page script cleaned up.');
-        // Удаляем обработчики событий, чтобы избежать утечек памяти
         const rpsBtn = document.getElementById('rock-paper-scissors-btn');
         const diceBtn = document.getElementById('dice-game-btn');
         if (rpsBtn) rpsBtn.removeEventListener('click', this.loadRockPaperScissorsGame);
         if (diceBtn) diceBtn.removeEventListener('click', this.loadDiceGame);
 
-        // Удаляем активный класс
         const activeGameButton = document.querySelector('.game-selection-buttons .active-game-selection');
         if (activeGameButton) {
             activeGameButton.classList.remove('active-game-selection');
@@ -33,7 +31,6 @@ window.VMPR.currentPageScript = {
 
     loadRockPaperScissorsGame: function() {
         const gameArea = document.getElementById('game-area');
-        // Добавляем/удаляем класс active-game-selection
         document.querySelectorAll('.game-selection-buttons .game-button').forEach(btn => btn.classList.remove('active-game-selection'));
         document.getElementById('rock-paper-scissors-btn').classList.add('active-game-selection');
 
@@ -45,8 +42,8 @@ window.VMPR.currentPageScript = {
             </div>
             <div class="rps-choices" style="display: flex; justify-content: center; gap: 10px; margin-bottom: 20px;">
                 <button class="button rps-choice-btn" data-choice="rock">Камень</button>
-                <button class="button rps-choice-btn" data-choice="paper">Ножницы</button>
-                <button class="button rps-choice-btn" data-choice="scissors">Бумага</button>
+                <button class="button rps-choice-btn" data-choice="scissors">Ножницы</button>
+                <button class="button rps-choice-btn" data-choice="paper">Бумага</button>
             </div>
             <p id="rps-result"></p>
             <p id="current-balance">Баланс: ${window.VMPR.userBalance.toFixed(2)} TON</p>
@@ -57,7 +54,6 @@ window.VMPR.currentPageScript = {
             button.addEventListener('click', window.VMPR.currentPageScript.playRockPaperScissors);
         });
 
-        // Обновляем баланс в UI игры при загрузке
         document.getElementById('current-balance').textContent = `Баланс: ${window.VMPR.userBalance.toFixed(2)} TON`;
     },
 
@@ -82,7 +78,8 @@ window.VMPR.currentPageScript = {
 
             if (userChoice === computerChoice) {
                 outcome = 'draw';
-                resultText = `Ничья! (${userChoice} vs ${computerChoice})`;
+                resultText = `Ничья! (${window.VMPR.currentPageScript.translateChoice(userChoice)} vs ${window.VMPR.currentPageScript.translateChoice(computerChoice)})`;
+                window.VMPR.addHistoryEntry(`Ничья: ${stake.toFixed(2)} TON (Ваш: ${window.VMPR.currentPageScript.translateChoice(userChoice)}, Бот: ${window.VMPR.currentPageScript.translateChoice(computerChoice)})`, 'info');
             } else if (
                 (userChoice === 'rock' && computerChoice === 'scissors') ||
                 (userChoice === 'paper' && computerChoice === 'rock') ||
@@ -90,27 +87,39 @@ window.VMPR.currentPageScript = {
             ) {
                 outcome = 'win';
                 window.VMPR.addBalance(stake * 2); // Получаем x2 от ставки
-                resultText = `Вы выиграли! (+${(stake * 2).toFixed(2)} TON) (${userChoice} vs ${computerChoice})`;
+                resultText = `Вы выиграли! (+${(stake * 2).toFixed(2)} TON) (${window.VMPR.currentPageScript.translateChoice(userChoice)} vs ${window.VMPR.currentPageScript.translateChoice(computerChoice)})`;
+                window.VMPR.addHistoryEntry(`Выигрыш: +${(stake * 2).toFixed(2)} TON (Ваш: ${window.VMPR.currentPageScript.translateChoice(userChoice)}, Бот: ${window.VMPR.currentPageScript.translateChoice(computerChoice)})`, 'win');
             } else {
                 outcome = 'loss';
                 // Баланс уже списан функцией deductBalance
-                resultText = `Вы проиграли! (-${stake.toFixed(2)} TON) (${userChoice} vs ${computerChoice})`;
+                resultText = `Вы проиграли! (-${stake.toFixed(2)} TON) (${window.VMPR.currentPageScript.translateChoice(userChoice)} vs ${window.VMPR.currentPageScript.translateChoice(computerChoice)})`;
+                window.VMPR.addHistoryEntry(`Проигрыш: -${stake.toFixed(2)} TON (Ваш: ${window.VMPR.currentPageScript.translateChoice(userChoice)}, Бот: ${window.VMPR.currentPageScript.translateChoice(computerChoice)})`, 'loss');
             }
 
             resultElement.textContent = resultText;
-            resultElement.className = ''; // Сбрасываем классы
+            resultElement.className = '';
             if (outcome === 'win') {
                 resultElement.classList.add('win-text');
             } else if (outcome === 'loss') {
                 resultElement.classList.add('loss-text');
+            } else if (outcome === 'draw') {
+                resultElement.classList.add('info-text');
             }
             currentBalanceElement.textContent = `Баланс: ${window.VMPR.userBalance.toFixed(2)} TON`;
         }
     },
 
+    translateChoice: function(choice) {
+        switch(choice) {
+            case 'rock': return 'Камень';
+            case 'paper': return 'Бумага';
+            case 'scissors': return 'Ножницы';
+            default: return choice;
+        }
+    },
+
     loadDiceGame: function() {
         const gameArea = document.getElementById('game-area');
-        // Добавляем/удаляем класс active-game-selection
         document.querySelectorAll('.game-selection-buttons .game-button').forEach(btn => btn.classList.remove('active-game-selection'));
         document.getElementById('dice-game-btn').classList.add('active-game-selection');
 

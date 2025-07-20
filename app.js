@@ -50,7 +50,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // --- Инициализация TON Connect SDK (ПОЛНОСТЬЮ ОТКЛЮЧЕНО) ---
-    // Здесь НЕТ вызова new TON_CONNECT_SDK.TonConnectUI.
     console.warn('TON Connect SDK временно отключен, все связанные вызовы удалены/закомментированы.');
 
     // --- Получение данных пользователя Telegram ---
@@ -67,19 +66,35 @@ document.addEventListener('DOMContentLoaded', async () => {
             const userData = await response.json();
 
             usernameElement.textContent = userData.username ? `@${userData.username}` : userData.first_name.trim() || 'Пользователь Telegram';
-            userAvatarElement.src = userData.avatar_url || 'assets/user.png';
+            
+            // --- ЛОГИКА АВАТАРКИ ---
+            // Сначала пытаемся использовать аватарку из БД
+            if (userData.avatar_url) {
+                userAvatarElement.src = userData.avatar_url;
+                // Если аватарка из БД не загрузилась (битая ссылка, ошибка сети), используем локальную заглушку
+                userAvatarElement.onerror = () => {
+                    userAvatarElement.src = 'assets/user.png'; 
+                    console.warn('Не удалось загрузить аватарку пользователя из БД, используется локальная заглушка.');
+                    userAvatarElement.onerror = null; // Предотвращаем бесконечный цикл ошибок
+                };
+            } else {
+                // Если avatar_url из БД пустой или отсутствует, сразу используем локальную заглушку
+                userAvatarElement.src = 'assets/user.png';
+                console.log('avatar_url из БД отсутствует, используется локальная заглушка.');
+            }
+            // --- КОНЕЦ ЛОГИКИ АВАТАРКИ ---
 
             console.log("User data from backend:", userData);
 
         } catch (error) {
             console.error('Ошибка при получении данных пользователя с бэкенда:', error);
             usernameElement.textContent = 'Гость (ошибка загрузки данных)';
-            userAvatarElement.src = 'assets/user.png';
+            userAvatarElement.src = 'assets/user.png'; // Используем заглушку при ошибке загрузки данных
             window.VMPR.tg.showAlert(`Ошибка загрузки данных пользователя: ${error.message}`);
         }
     } else {
         usernameElement.textContent = 'Гость (нет данных WebApp)';
-        userAvatarElement.src = 'assets/user.png';
+        userAvatarElement.src = 'assets/user.png'; // Используем заглушку, если нет данных WebApp
     }
 
     // --- Функции для работы с балансом ---
@@ -89,7 +104,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     window.VMPR.deductBalance = function(amount) {
         if (window.VMPR.userBalance >= amount) {
-            window.VMPR.userBalance -= amount;
+            window.VMPR.userBalance = parseFloat((window.VMPR.userBalance - amount).toFixed(2));
             window.VMPR.updateBalanceUI();
             window.VMPR.addHistoryEntry(`Снято: ${amount.toFixed(2)} TON`, 'loss');
             return true;
@@ -100,7 +115,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
 
     window.VMPR.addBalance = function(amount) {
-        window.VMPR.userBalance += amount;
+        window.VMPR.userBalance = parseFloat((window.VMPR.userBalance + amount).toFixed(2));
         window.VMPR.updateBalanceUI();
         window.VMPR.addHistoryEntry(`Начислено: ${amount.toFixed(2)} TON`, 'win');
     };
