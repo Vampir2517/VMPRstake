@@ -1,294 +1,110 @@
-/* Переменные для легкой кастомизации темы */
+/* Переменные CSS для легкой смены цветов */
 :root {
-    --bg-color: #1a0000; /* Темный фон */
-    --primary-red: #8B0000; /* Основной красный */
-    --dark-red: #6e0000; /* Темно-красный */
-    --text-color: #f5f5f5; /* Светлый текст */
-    --accent-color: #ff4d4d; /* Акцентный красный */
-    --border-color: #444; /* Цвет границ */
-    --win-color: #32CD32; /* Цвет выигрыша (зеленый) */
-    --loss-color: #FF4500; /* Цвет проигрыша (оранжевый) */
-    --nav-bg-color: #2a0000; /* Фон для нижней навигации */
+    --bg-color: #1a1a1a; /* Темный фон */
+    --primary-color: #ff9800; /* Основной оранжевый */
+    --secondary-color: #4a4a4a; /* Вторичный серый */
+    --text-color: #f0f0f0; /* Светлый текст */
+    --button-bg-color: #333; /* Фон кнопок */
+    --button-text-color: #ffffff; /* Цвет текста кнопок */
+    --nav-bg-color: #222222; /* Фон навигационной панели */
     --nav-icon-color: #cccccc; /* Цвет иконок в навигации */
-    --nav-active-color: var(--accent-color); /* Цвет активной иконки */
+    --active-nav-color: var(--primary-color); /* Активный цвет навигации */
+    --input-bg-color: #333333; /* Фон полей ввода */
+    --input-border-color: #555555; /* Цвет границы полей ввода */
+    --win-color: #4CAF50; /* Зеленый для выигрыша */
+    --loss-color: #f44336; /* Красный для проигрыша */
+    --info-color: #2196F3; /* Синий для информации */
+    --border-radius: 10px;
+    --spacing-unit: 16px;
 }
 
-/* Общие стили для тела страницы */
+/* Сброс базовых стилей и установка шрифта */
 body {
+    font-family: 'Arial', sans-serif;
     margin: 0;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    padding: 0;
     background-color: var(--bg-color);
     color: var(--text-color);
-    overflow: hidden; /* Предотвращаем прокрутку */
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    min-height: 100vh;
-    padding: 15px;
-    box-sizing: border-box;
+    overflow: hidden; /* Важно: предотвращает прокрутку body, прокрутку обрабатывает .main-content */
+    height: 100vh; /* Занимает всю высоту вьюпорта */
+    display: flex; /* Для корректного растягивания .app */
+    justify-content: center; /* Центрируем приложение по горизонтали */
+    align-items: center; /* Центрируем приложение по вертикали */
 }
 
-/* Контейнер приложения */
+/* Основной контейнер приложения */
 .app {
+    display: flex;
+    flex-direction: column;
     width: 100%;
-    max-width: 400px;
-    background-color: #220000;
-    border-radius: 15px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-    padding: 20px;
-    box-sizing: border-box;
-    display: flex; /* Используем flexbox для компоновки */
-    flex-direction: column; /* Элементы идут сверху вниз */
-    min-height: calc(100vh - 30px); /* Высота с учетом padding body */
-    position: relative; /* Для позиционирования нижней панели */
-    overflow: hidden; /* Скрываем излишки контента */
+    max-width: 480px; /* Максимальная ширина для мобильных устройств */
+    height: 100vh; /* Занимает всю высоту вьюпорта */
+    background-color: var(--bg-color);
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+    border-radius: var(--border-radius);
+    overflow: hidden; /* Скрывает содержимое, которое выходит за границы */
+    box-sizing: border-box; /* Учитывает padding и border в ширине/высоте */
 }
 
-/* Шапка приложения */
+/* Хедер (шапка) приложения */
 .header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
-    padding-bottom: 15px;
-    border-bottom: 1px solid var(--border-color);
-    flex-shrink: 0; /* Не сжимается */
+    padding: var(--spacing-unit);
+    background-color: var(--nav-bg-color); /* Используем цвет навигации для заголовка */
+    border-bottom: 1px solid var(--secondary-color);
+    color: var(--text-color);
+    font-size: 1.1em;
 }
 
 .user-info {
     display: flex;
     align-items: center;
-    font-weight: bold;
-    font-size: 1.1em;
 }
 
-.avatar {
+.user-info img {
     width: 40px;
     height: 40px;
     border-radius: 50%;
     margin-right: 10px;
-    border: 2px solid var(--primary-red);
-    object-fit: cover;
+    border: 2px solid var(--primary-color);
 }
 
 .balance {
-    font-size: 1.2em;
     font-weight: bold;
-    display: flex;
-    align-items: center;
-    gap: 10px;
+    color: var(--primary-color);
 }
 
-/* Стили для кнопки TON Connect SDK */
-#ton-connect-btn-container {
-    position: relative;
-    z-index: 3;
-}
-
-#ton-connect-btn-container button {
-    background-color: var(--primary-red) !important;
-    color: var(--text-color) !important;
-    border: none !important;
-    border-radius: 12px !important;
-    padding: 10px 15px !important;
-    font-size: 1em !important;
-    cursor: pointer !important;
-    transition: background-color 0.2s ease-in-out, transform 0.2s ease-in-out !important;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-    pointer-events: auto;
-}
-
-#ton-connect-btn-container button:hover {
-    background-color: var(--accent-color) !important;
-    transform: translateY(-2px);
-}
-
-/* Основное содержимое, куда загружаются страницы */
+/* Основной контент (динамически загружаемые страницы) */
 .main-content {
-    flex-grow: 1; /* Занимает все доступное пространство */
-    width: 100%;
-    padding-bottom: 20px; /* Отступ от нижней навигации */
+    flex-grow: 1; /* Позволяет основному контенту занимать все доступное пространство */
+    overflow-y: auto; /* Добавляет прокрутку, если контент превышает высоту */
+    padding: var(--spacing-unit);
+    padding-bottom: calc(var(--spacing-unit) + 60px); /* Отступ снизу для навигационной панели */
     box-sizing: border-box;
-    overflow-y: auto; /* Позволяет прокручивать контент, если он слишком длинный */
-    -webkit-overflow-scrolling: touch; /* Улучшает скроллинг на iOS */
-}
-
-/* Стили для динамически загружаемых страниц */
-.page-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 100%;
-    animation: fadeIn 0.5s ease-out;
-    padding-top: 5px; /* Небольшой отступ сверху для контента страницы */
-}
-
-/* Анимация появления */
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-/* Стили для кнопок игры и навигации внутри страниц */
-.game-btn, .back-btn, .choice-btn, #roll-dice-btn {
-    width: 100%;
-    padding: 15px;
-    font-size: 1.1em;
-    font-weight: bold;
-    color: var(--text-color);
-    background-color: var(--primary-red);
-    border: 2px solid var(--dark-red);
-    border-radius: 12px;
-    cursor: pointer;
-    margin-bottom: 15px;
-    transition: all 0.2s ease-in-out;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-    pointer-events: auto;
-    z-index: 1; /* Стандартный z-index для кнопок */
-}
-
-.game-btn:hover, .choice-btn:hover, #roll-dice-btn:hover {
-    background-color: var(--accent-color);
-    transform: translateY(-3px);
-    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
-}
-
-.game-btn:active, .choice-btn:active, #roll-dice-btn:active {
-    transform: translateY(0);
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-}
-
-.back-btn {
-    align-self: flex-start;
-    width: auto;
-    padding: 8px 15px;
-    margin-bottom: 20px;
-    font-weight: normal;
-    background-color: var(--dark-red);
-    border-color: #550000;
-}
-
-.back-btn:hover {
-    background-color: var(--primary-red);
-    transform: translateY(-2px);
-}
-
-/* Заголовки страниц */
-h2 {
-    color: var(--accent-color);
-    margin-top: 0;
-    margin-bottom: 20px;
+    display: flex; /* Для центрирования спиннера */
+    justify-content: center; /* Для центрирования спиннера */
+    align-items: center; /* Для центрирования спиннера */
     text-align: center;
 }
 
-/* Стили для выбора в Камень, Ножницы, Бумага */
-.choices {
-    display: flex;
-    justify-content: center;
-    gap: 15px;
-    margin: 20px 0;
-    width: 100%;
-    flex-wrap: wrap;
-}
-
-.choice-btn {
-    font-size: 40px;
-    width: 90px;
-    height: 90px;
-    padding: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border-radius: 50%;
-    background-color: var(--dark-red);
-    border-color: var(--primary-red);
-}
-
-/* Стили для игры "Кости" */
-.dice-container {
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-    margin: 20px 0;
-    width: 100%;
-}
-
-.dice {
-    width: 90px;
-    height: 90px;
-    border: 3px solid var(--accent-color);
-    border-radius: 15px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 48px;
-    font-weight: bold;
-    background-color: #330000;
-    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
-}
-
-/* Текст результата игры */
-.result-text {
-    margin-top: 20px;
-    font-size: 1.5em;
-    font-weight: bold;
-    height: 30px;
-    text-align: center;
-    min-height: 1.5em;
-}
-
-/* История игр */
-.history-list {
-    list-style: none;
-    padding: 0;
-    width: 100%;
-    max-height: 250px;
-    overflow-y: auto;
-    border: 1px solid var(--border-color);
-    border-radius: 10px;
-    padding: 10px;
-    box-sizing: border-box;
-}
-
-.history-list li {
-    background-color: #2c0000;
-    padding: 12px;
-    border-radius: 8px;
-    margin-bottom: 8px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 0.95em;
-}
-
-.history-list li:last-child {
-    margin-bottom: 0;
-}
-
-.win { color: var(--win-color); }
-.loss { color: var(--loss-color); }
-.draw { color: var(--text-color); }
-
-/* --- Нижняя навигация --- */
+/* Нижняя навигационная панель */
 .bottom-nav {
     display: flex;
     justify-content: space-around;
     align-items: center;
-    width: calc(100% + 40px); /* Ширина с учетом padding .app */
     background-color: var(--nav-bg-color);
-    border-top: 1px solid var(--border-color);
+    border-top: 1px solid var(--secondary-color);
     padding: 10px 0;
-    position: sticky; /* Прилипает к низу */
-    bottom: -20px; /* Смещаем вверх на padding .app */
-    left: -20px; /* Смещаем влево на padding .app */
-    border-bottom-left-radius: 15px;
-    border-bottom-right-radius: 15px;
-    box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.3);
-    flex-shrink: 0; /* Не сжимается */
-    z-index: 100; /* Поверх всего */
+    position: sticky; /* Sticky, чтобы прилипать к низу родителя (.app) */
+    bottom: 0;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .nav-btn {
+    flex: 1; /* Распределяет кнопки равномерно */
     background: none;
     border: none;
     color: var(--nav-icon-color);
@@ -297,72 +113,114 @@ h2 {
     align-items: center;
     font-size: 0.8em;
     cursor: pointer;
-    padding: 5px 10px;
-    border-radius: 8px;
-    transition: color 0.2s ease-in-out, background-color 0.2s ease-in-out;
+    padding: 5px 0;
+    transition: color 0.2s ease-in-out;
 }
 
 .nav-btn img {
-    width: 28px;
-    height: 28px;
+    width: 24px;
+    height: 24px;
     margin-bottom: 5px;
-    filter: brightness(0) saturate(100%) invert(80%) sepia(0%) saturate(14%) hue-rotate(240deg) brightness(97%) contrast(91%); /* Цвет иконок */
+    filter: invert(70%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(100%) contrast(100%); /* Делает иконки серыми */
     transition: filter 0.2s ease-in-out;
 }
 
 .nav-btn.active {
-    color: var(--nav-active-color);
-    /* background-color: rgba(255, 77, 77, 0.1); */ /* Небольшой фон для активной кнопки */
+    color: var(--active-nav-color);
 }
 
 .nav-btn.active img {
-    filter: brightness(0) saturate(100%) invert(31%) sepia(99%) saturate(4522%) hue-rotate(345deg) brightness(101%) contrast(92%); /* Активный цвет иконки */
+    filter: invert(50%) sepia(90%) saturate(2000%) hue-rotate(360deg) brightness(100%) contrast(100%); /* Делает иконки оранжевыми */
 }
 
-.nav-btn:hover {
-    color: var(--nav-active-color);
+.nav-btn:hover:not(.active) {
+    color: var(--primary-color);
 }
 
-.nav-btn:hover img {
-     filter: brightness(0) saturate(100%) invert(31%) sepia(99%) saturate(4522%) hue-rotate(345deg) brightness(101%) contrast(92%);
+.nav-btn:hover:not(.active) img {
+    filter: invert(50%) sepia(90%) saturate(2000%) hue-rotate(360deg) brightness(100%) contrast(100%);
 }
 
+/* --- Стили для общих элементов внутри динамических страниц --- */
 
-/* Адаптивность для маленьких экранов */
-@media (max-width: 360px) {
-    .game-btn, .back-btn, .choice-btn, #roll-dice-btn {
-        font-size: 1em;
-        padding: 12px;
-    }
-    .choice-btn, .dice {
-        width: 75px;
-        height: 75px;
-        font-size: 36px;
-    }
-    .choices, .dice-container {
-        gap: 10px;
-    }
-    .result-text {
-        font-size: 1.2em;
-    }
-    .nav-btn {
-        font-size: 0.75em;
-    }
-    .nav-btn img {
-        width: 24px;
-        height: 24px;
-    }
+.page-title {
+    font-size: 1.8em;
+    color: var(--primary-color);
+    margin-bottom: var(--spacing-unit);
+    text-align: center;
+    width: 100%; /* Чтобы центрировать его в flex-контейнере .main-content */
 }
 
-/* Опционально: стили для спиннера загрузки */
+.section {
+    background-color: var(--secondary-color);
+    border-radius: var(--border-radius);
+    padding: var(--spacing-unit);
+    margin-bottom: var(--spacing-unit);
+    width: 100%;
+    box-sizing: border-box;
+    text-align: left; /* Переопределяем text-align для содержимого секций */
+}
+
+.section h3 {
+    color: var(--primary-color);
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 1.2em;
+}
+
+.button {
+    background-color: var(--primary-color);
+    color: var(--button-text-color);
+    border: none;
+    border-radius: var(--border-radius);
+    padding: 12px 20px;
+    font-size: 1em;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    width: 100%;
+    box-sizing: border-box;
+    text-align: center;
+    display: block; /* Убедимся, что кнопка занимает всю ширину */
+    margin-top: var(--spacing-unit); /* Отступ сверху для кнопок */
+}
+
+.button:hover {
+    background-color: #e68a00; /* Более темный оранжевый при наведении */
+}
+
+.input-group {
+    margin-bottom: var(--spacing-unit);
+    width: 100%;
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 5px;
+    color: var(--text-color);
+    font-size: 0.9em;
+}
+
+.input-group input[type="number"],
+.input-group input[type="text"] {
+    width: 100%;
+    padding: 10px;
+    background-color: var(--input-bg-color);
+    border: 1px solid var(--input-border-color);
+    border-radius: var(--border-radius);
+    color: var(--text-color);
+    font-size: 1em;
+    box-sizing: border-box;
+}
+
+/* Спиннер загрузки */
 .loading-spinner {
     border: 4px solid rgba(255, 255, 255, 0.3);
-    border-top: 4px solid var(--accent-color);
+    border-top: 4px solid var(--primary-color);
     border-radius: 50%;
-    width: 30px;
-    height: 30px;
+    width: 40px;
+    height: 40px;
     animation: spin 1s linear infinite;
-    margin: 50px auto;
+    margin: 20px auto;
 }
 
 @keyframes spin {
@@ -370,16 +228,130 @@ h2 {
     100% { transform: rotate(360deg); }
 }
 
-/* Изменения в nav-btn для более чистого активного состояния */
-.nav-btn.active {
-    color: var(--nav-active-color);
-    /* Удаляем background-color: rgba(255, 77, 77, 0.1); если не нужен */
+/* Кнопка "Назад" (может использоваться на подстраницах) */
+.back-btn {
+    background: none;
+    border: none;
+    color: var(--primary-color);
+    font-size: 1em;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    margin-bottom: var(--spacing-unit);
+    padding: 0; /* Удаляем внутренние отступы, чтобы иконка была ближе к тексту */
+    width: fit-content; /* Чтобы кнопка не занимала всю ширину */
 }
 
-/* Убедимся, что hover эффект для nav-btn активен всегда */
-.nav-btn:hover {
-    color: var(--nav-active-color);
+.back-btn img {
+    width: 20px;
+    height: 20px;
+    margin-right: 5px;
+    filter: invert(50%) sepia(90%) saturate(2000%) hue-rotate(360deg) brightness(100%) contrast(100%); /* Оранжевый цвет */
 }
-.nav-btn:hover img {
-    filter: brightness(0) saturate(100%) invert(31%) sepia(99%) saturate(4522%) hue-rotate(345deg) brightness(101%) contrast(92%);
+
+.back-btn:hover {
+    text-decoration: underline;
+}
+
+/* Стили для сообщений в истории */
+.history-entry {
+    margin-bottom: 8px;
+    padding: 8px;
+    border-radius: 5px;
+    background-color: #333;
+    font-size: 0.9em;
+    word-wrap: break-word; /* Перенос длинных слов */
+}
+
+.history-entry.info {
+    border-left: 3px solid var(--info-color);
+    color: #c0d0e0;
+}
+
+.history-entry.win {
+    border-left: 3px solid var(--win-color);
+    color: #e0f2e0;
+}
+
+.history-entry.loss {
+    border-left: 3px solid var(--loss-color);
+    color: #f2e0e0;
+}
+
+.history-entry .timestamp {
+    font-size: 0.75em;
+    color: #999;
+    display: block;
+    margin-top: 4px;
+}
+
+/* Дополнительные стили для конкретных страниц (примеры, если они потребуются) */
+/* Если вы добавите стили, специфичные для страницы, лучше создать для них отдельные CSS-файлы
+   и загружать их динамически вместе с HTML и JS страницы, или использовать классы
+   на body или .main-content для scoped-стилей. */
+
+/* Стили для страницы "Игры" (пример) */
+#game-controls {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-unit);
+    width: 100%;
+    align-items: center;
+}
+
+#game-result {
+    font-size: 1.2em;
+    font-weight: bold;
+    margin-top: var(--spacing-unit);
+    color: var(--text-color);
+}
+
+#game-result.win-text {
+    color: var(--win-color);
+}
+
+#game-result.loss-text {
+    color: var(--loss-color);
+}
+
+/* Стили для страницы "Настройки" */
+#settings-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-unit);
+    width: 100%;
+}
+
+#settings-content p {
+    margin-bottom: 0;
+}
+
+/* Стили для страницы "История" */
+#history-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    width: 100%;
+}
+
+#history-list li {
+    margin-bottom: 10px;
+}
+
+/* Стили для центральной кнопки подключения TON Connect (если вернем) */
+.tonconnect-button-container {
+    margin-top: var(--spacing-unit);
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+
+/* Временные стили для заглушки TON Connect, если они понадобятся */
+.ton-connect-placeholder {
+    padding: var(--spacing-unit);
+    background-color: #333;
+    border-radius: var(--border-radius);
+    text-align: center;
+    color: #ccc;
+    margin-top: var(--spacing-unit);
 }
