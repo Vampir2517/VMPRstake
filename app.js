@@ -53,7 +53,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         // --- Динамическая загрузка TON Connect SDK ---
         console.log('Loading TON Connect SDK...');
         // Попробуем CDNJS еще раз, но теперь с контролем загрузки
-        await loadScript('https://cdnjs.cloudflare.com/ajax/libs/ton-connect-sdk/2.3.0/ton-connect-sdk.min.js', 'tonconnect-sdk');
+        await loadScript('./lib/ton-connect-sdk.min.js', 'tonconnect-sdk');
         if (!window.TON_CONNECT_SDK) {
             throw new Error('TON Connect SDK not found after loading.');
         }
