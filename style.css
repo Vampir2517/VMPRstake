@@ -63,13 +63,17 @@ body {
     align-items: center;
 }
 
+/* *** ИЗМЕНЕНИЯ ДЛЯ АВАТАРКИ: УБЕДИТЕСЬ, ЧТО ЭТОТ БЛОК ТУТ *** */
 .user-info img {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
+    width: 40px; /* Фиксированная ширина */
+    height: 40px; /* Фиксированная высота */
+    border-radius: 50%; /* Делает её круглой */
     margin-right: 10px;
     border: 2px solid var(--primary-color);
+    object-fit: cover; /* ОЧЕНЬ ВАЖНО: Масштабирует изображение, чтобы оно заполнило контейнер без искажений */
+    flex-shrink: 0; /* Предотвращает сжатие изображения, если места мало */
 }
+/* *************************************************************** */
 
 .balance {
     font-weight: bold;
@@ -83,11 +87,24 @@ body {
     padding: var(--spacing-unit);
     padding-bottom: calc(var(--spacing-unit) + 60px); /* Отступ снизу для навигационной панели */
     box-sizing: border-box;
-    display: flex; /* Для центрирования спиннера */
-    justify-content: center; /* Для центрирования спиннера */
-    align-items: center; /* Для центрирования спиннера */
-    text-align: center;
+    display: flex; /* Для центрирования спиннера и контента */
+    flex-direction: column; /* Для размещения элементов друг под другом */
+    align-items: center; /* Центрируем по горизонтали */
+    text-align: center; /* Центрируем текст внутри */
 }
+
+/* Общее правило для изображений внутри main-content, если они нужны */
+/* Если вам НУЖНО, чтобы изображения внутри main-content растягивались,
+   то используйте более специфичный селектор, чтобы не затрагивать аватарку.
+   Если такого правила нет, то это хорошо. */
+/* Пример:
+.main-content img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+}
+*/
 
 /* Нижняя навигационная панель */
 .bottom-nav {
